@@ -34,15 +34,15 @@ tags: ["csm", "cascade", "pssm", "split-scheme"]
 
 - 对数划分（Logarithmic Split）：分割点按对数间隔分布，公式如下：
 
-$$C_i = \lambda \cdot n \cdot (f/n)^i + (1 - \lambda) \cdot (n + (f - n) \cdot i / N)$$
+$$C_i = n \cdot \left(\frac{f}{n}\right)^{i/N}$$
 
-其中 $n$ 为近平面距离，$f$ 为远平面距离。对数划分在近处分配更多的级联切片，适合近处需要高精度阴影的场景。但纯对数划分可能导致远处级联切片过厚，阴影质量急剧下降。
+其中 $n$ 为近平面距离，$f$ 为远平面距离，$N$ 为级联总数。对数划分在近处分配更多的级联切片，适合近处需要高精度阴影的场景。但纯对数划分可能导致远处级联切片过厚，阴影质量急剧下降。
 - 均匀划分（Uniform Split）：将视锥体等分为 $N$ 份，每个级联覆盖相同的深度范围。实现简单，但近处精度不足，远处精度浪费。实际工程中很少单独使用。
 - PSSM（Practical Split Scheme）：由Engel等人于2006年提出，结合对数划分和均匀划分的优点。公式为：
 
 $$C_i = \lambda \cdot n \cdot (f/n)^i + (1 - \lambda) \cdot (n + (f - n) \cdot i / N)$$
 
-其中 $\lambda$ 在 $0$ 到 $1$ 之间调节。$\lambda = 0$ 时退化为均匀划分，$\lambda = 1$ 时退化为对数划分。通常 $\lambda$ 取 $0.5$ 左右，在近处和远处都获得合理的精度分配。
+其中参数 $\lambda$ 在 $0$ 到 $1$ 之间调节。当 $\lambda = 0$ 时退化为均匀划分，当 $\lambda = 1$ 时退化为对数划分。通常取 $\lambda \approx 0.5$，在近处和远处都获得合理的精度分配。
 
 
 ## 🛠 工程实践
