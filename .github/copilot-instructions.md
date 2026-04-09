@@ -37,3 +37,7 @@ tags: [tag1, tag2]
 - GLSL/HLSL 代码不转 LaTeX
 - 文件名禁止中文括号、空格、全角标点
 - 无截断行（`\` 结尾）和 Unicode 转义残留
+
+## 经验沉淀
+
+完成非平凡任务后，检查是否有通用经验需要沉淀到规范文件中（`CLAUDE.md`、`.cursor/rules/`、本文件）。详见 `CLAUDE.md` 第八节。
