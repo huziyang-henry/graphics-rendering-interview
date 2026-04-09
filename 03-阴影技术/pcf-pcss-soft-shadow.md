@@ -26,14 +26,18 @@ tags: ["pcf", "pcss", "soft-shadow", "poisson-disk"]
 
 ### PCF的工作原理
 
-- 标准Shadow Map的深度比较是二值化的（0或1），导致阴影边缘呈现锯齿状的硬边界。PCF的核心思想是对Shadow Map中当前像素周围的N个采样点分别进行深度比较，得到N个0/1结果，然后取平均值作为最终的阴影因子（Shadow Factor）。
-- 例如，对一个3x3的采样核进行PCF滤波，如果9个采样点中有5个被判定为阴影，则阴影因子为5/9 ≈ 0.56，该像素呈现半阴影状态。采样核越大，阴影边缘越柔和，但计算开销也越大。
+- 标准Shadow Map的深度比较是二值化的（$0$ 或 $1$），导致阴影边缘呈现锯齿状的硬边界。PCF的核心思想是对Shadow Map中当前像素周围的 $N$ 个采样点分别进行深度比较，得到 $N$ 个 $0/1$ 结果，然后取平均值作为最终的阴影因子（Shadow Factor）。
+- 例如，对一个 $3 \times 3$ 的采样核进行PCF滤波，如果 $9$ 个采样点中有 $5$ 个被判定为阴影，则阴影因子为 $5/9 \approx 0.56$，该像素呈现半阴影状态。采样核越大，阴影边缘越柔和，但计算开销也越大。
 - PCF本质上是一个对深度测试结果的均值滤波（Box Filter），它不等同于对深度值本身做滤波——先滤波深度再比较会产生错误的结果（因为深度比较是非线性操作）。
 
 ### PCSS的三阶段流程
 
-- 第一阶段——Blocker Search（遮挡物搜索）：在Shadow Map中以当前像素为中心，在给定搜索半径内采样，找出所有深度值小于接收面深度的采样点（即遮挡物），计算它们的平均深度z_blocker。如果找不到遮挡物，则该像素完全处于光照中，无需后续处理。
-- 第二阶段——Penumbra Estimation（半影宽度估算）：根据相似三角形原理，半影宽度w_penumbra = (z_receiver - z_blocker) * w_light / z_blocker，其中w_light是光源的表观宽度。遮挡物越远离接收面，半影越宽。
+- 第一阶段——Blocker Search（遮挡物搜索）：在Shadow Map中以当前像素为中心，在给定搜索半径内采样，找出所有深度值小于接收面深度的采样点（即遮挡物），计算它们的平均深度 $z_{\text{blocker}}$。如果找不到遮挡物，则该像素完全处于光照中，无需后续处理。
+- 第二阶段——Penumbra Estimation（半影宽度估算）：根据相似三角形原理，半影宽度公式如下：
+
+$$w_{\text{penumbra}} = (z_{\text{receiver}} - z_{\text{blocker}}) \cdot w_{\text{light}} / z_{\text{blocker}}$$
+
+其中 $w_{\text{light}}$ 是光源的表观宽度。遮挡物越远离接收面，半影越宽。
 - 第三阶段——PCF Filtering：使用估算出的半影宽度作为PCF的采样半径，在Shadow Map中进行PCF滤波，生成软阴影。半影宽的区域使用大半径采样，半影窄的区域使用小半径采样。
 
 
@@ -44,7 +48,7 @@ tags: ["pcf", "pcss", "soft-shadow", "poisson-disk"]
 - 规则网格采样（Regular Grid）：最简单的采样模式，但容易产生方向性的条带伪影。
 - Poisson Disk采样：在单位圆内预计算一组满足泊松分布的采样点，具有更好的各向同性，能有效减少条带伪影。通常使用16-64个采样点。
 - Vogel Disk采样：基于黄金角度的螺旋采样模式，在采样点数量变化时能保持较好的分布质量，适合需要动态调整采样数量的场景。
-- 硬件PCF：DirectX 9+和OpenGL支持通过比较滤波器（Comparison Filter）在硬件层面实现2x2的PCF，性能开销极低，但采样核大小受限。
+- 硬件PCF：DirectX 9+和OpenGL支持通过比较滤波器（Comparison Filter）在硬件层面实现 $2 \times 2$ 的PCF，性能开销极低，但采样核大小受限。
 
 ### PCSS的参数调优
 

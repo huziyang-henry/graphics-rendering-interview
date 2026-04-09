@@ -25,19 +25,23 @@ tags: ["tone-mapping", "aces", "reinhard", "hdr", "exposure"]
 
 ### 为什么HDR渲染必须做Tone Mapping
 
-- HDR渲染过程中，光照计算产生的颜色值可以远超[0,1]范围。例如，太阳表面的亮度可能达到数百甚至数千，金属高光反射也可能超过10.0
-- 显示器（无论是sDR还是HDR显示器）都有其最大亮度限制。sDR显示器的标准白点为1.0（约100 nits），即使HDR显示器也有其峰值亮度上限
-- 如果直接将HDR值clamp到[0,1]，会导致所有超过1.0的亮度变成纯白，丢失大量高光细节和层次感
+- HDR渲染过程中，光照计算产生的颜色值可以远超 $[0, 1]$ 范围。例如，太阳表面的亮度可能达到数百甚至数千，金属高光反射也可能超过 $10.0$
+- 显示器（无论是sDR还是HDR显示器）都有其最大亮度限制。sDR显示器的标准白点为 $1.0$（约100 nits），即使HDR显示器也有其峰值亮度上限
+- 如果直接将HDR值clamp到 $[0, 1]$ ，会导致所有超过 $1.0$ 的亮度变成纯白，丢失大量高光细节和层次感
 - Tone Mapping的核心目标是在压缩亮度范围的同时，保持视觉上的对比度感知和色彩保真度
 
 ### Reinhard曲线
 
-- 公式：L_out = L_in / (1 + L_in)，这是一个简单的全局映射函数
+- 公式：
+
+$$L_{\text{out}} = \frac{L_{\text{in}}}{1 + L_{\text{in}}}$$
+
+这是一个简单的全局映射函数
 - 特点：实现简单，计算开销极低；对所有亮度值进行统一的压缩，没有区分阴影、中间调和高光的处理
-- 主要缺陷：高光区域被压缩得过于平坦，容易产生\
-- （Washed-out）的感觉。因为随着输入亮度增大，输出趋近于1.0的速度太快，高光缺乏\
-- （Shoulder）过渡
-- Reinhard的改进版本（Extended Reinhard）通过引入白点参数L_white来控制压缩程度：L_out = L_in * (1 + L_in/L_white^2) / (1 + L_in)
+- 主要缺陷：高光区域被压缩得过于平坦，容易产生灰白（Washed-out）的感觉。因为随着输入亮度增大，输出趋近于 $1.0$ 的速度太快，高光缺乏肩部（Shoulder）过渡
+- Reinhard的改进版本（Extended Reinhard）通过引入白点参数 $L_{\text{white}}$ 来控制压缩程度：
+
+$$L_{\text{out}} = \frac{L_{\text{in}} \cdot (1 + L_{\text{in}} / L_{\text{white}}^2)}{1 + L_{\text{in}}}$$
 
 ### ACES曲线（Academy Color Encoding System）
 
@@ -60,11 +64,11 @@ tags: ["tone-mapping", "aces", "reinhard", "hdr", "exposure"]
 
 - 标准顺序：Bloom → Tone Mapping → Gamma Correction → Color Grading。Tone Mapping必须在Bloom之后，因为Bloom产生的叠加值也是HDR值，需要一起被映射
 - Tone Mapping必须在Gamma Correction之前，因为Tone Mapping假设输入为线性空间的HDR值
-- Color Grading（LUT查找）通常在Tone Mapping之后进行，此时颜色值已经在[0,1]范围内，便于LUT采样
+- Color Grading（LUT查找）通常在Tone Mapping之后进行，此时颜色值已经在 $[0, 1]$ 范围内，便于LUT采样
 
 ### 曝光补偿（Exposure Compensation）
 
-- 在Tone Mapping之前乘以曝光值：color *= exposure，可以整体调整画面的明暗
+- 在Tone Mapping之前乘以曝光值： $\text{color} \mathrel{*}= \text{exposure}$ ，可以整体调整画面的明暗
 - 曝光补偿通常提供给美术人员作为全局参数，用于快速调整场景的整体亮度感觉
 - 自动曝光（Auto Exposure）：通过计算当前帧的平均/中值亮度，自动调整曝光值以适应不同亮度的场景。实现时通常使用直方图统计，并加入时间平滑以避免曝光跳变
 
@@ -79,8 +83,7 @@ tags: ["tone-mapping", "aces", "reinhard", "hdr", "exposure"]
 
 ### ACES曲线在极高亮度下的行为
 
-- ACES曲线在输入亮度极高时（>1000），输出会轻微超过1.0然后回落，导致\
-- 效果（亮度越高输出反而略低）
+- ACES曲线在输入亮度极高时（ $> 1000$ ），输出会轻微超过 $1.0$ 然后回落，导致亮度反转效果（亮度越高输出反而略低）
 - 虽然这种情况在实际渲染中很少出现，但在处理太阳、爆炸等极端高亮光源时需要注意
 - 解决方案：在应用ACES之前，先对极端值进行clamp或使用改进版的ACES曲线（如ACEScc的变体）
 
@@ -96,9 +99,7 @@ tags: ["tone-mapping", "aces", "reinhard", "hdr", "exposure"]
 ### HDR显示器的Tone Mapping
 
 - 在HDR10/Dolby Vision显示器上，显示器的峰值亮度可达1000~10000 nits，远超sDR的100 nits
-- 此时Tone Mapping的目标从\
-- 变为\
-- ，使用PQ（Perceptual Quantizer）曲线或ScRGB颜色空间
+- 此时Tone Mapping的目标从将HDR压缩到LDR变为将HDR映射到显示器的原生亮度范围，使用PQ（Perceptual Quantizer）曲线或ScRGB颜色空间
 - PQ曲线（ST 2084）基于人眼的亮度感知模型，在整亮度范围内提供感知均匀的量化
 - 游戏需要同时支持sDR和HDR输出，通常需要两套Tone Mapping参数或一个自适应的映射方案
 

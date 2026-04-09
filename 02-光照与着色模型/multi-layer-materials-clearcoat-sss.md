@@ -32,9 +32,9 @@ tags: ["clearcoat", "sss", "multi-layer", "disney-brdf"]
 
 - Clear Coat（清漆层）模拟在基础材质上覆盖一层透明介质（如清漆、蜡、水膜）的效果。
 - 典型应用：汽车漆面（透明清漆 + 金属底色）、钢琴漆、涂漆木材、湿润表面。
-- 物理模型：顶层为透明介质层（F0≈0.04，独立roughness），底层为标准PBR材质。
+- 物理模型：顶层为透明介质层（$F_0 \approx 0.04$，独立roughness），底层为标准PBR材质。
 - 光与Clear Coat的交互：光首先到达顶层界面，一部分被菲涅尔反射（Clear Coat Specular），其余透射进入底层；透射光在底层发生标准PBR反射/散射后再次穿过顶层射出。
-- 数学表达：f_clearcoat = F_coat * f_specular_coat + (1 - F_coat)^2 * f_base，其中F_coat是顶层的菲涅尔反射率，(1-F_coat)^2考虑了光进出顶层的两次透射。
+- 数学表达：$f_{\text{clearcoat}} = F_{\text{coat}} \cdot f_{\text{specular\_coat}} + (1 - F_{\text{coat}})^2 \cdot f_{\text{base}}$，其中 $F_{\text{coat}}$ 是顶层的菲涅尔反射率，$(1 - F_{\text{coat}})^2$ 考虑了光进出顶层的两次透射。
 
 ### 次表面散射（SSS）模型
 
@@ -45,28 +45,28 @@ tags: ["clearcoat", "sss", "multi-layer", "disney-brdf"]
 -   - Burley近似（Disney 2012）：用7个高斯核的加权叠加来模拟散射轮廓，计算效率高，效果接近参考解。
 -   - Hanrahan-Krueger模型：基于偶极子（Dipole）近似的解析解，精度高但计算量大。
 -   - 屏幕空间SSS（SSSSS）：在屏幕空间对Diffuse结果做模糊，受屏幕分辨率和深度不连续性影响。
-- SSS的渲染方程扩展为BSSRDF：f(p_i, ω_i; p_o, ω_o)，引入了入射点p_i和出射点p_o的空间距离参数。
+- SSS的渲染方程扩展为BSSRDF：$f(p_i, \omega_i; p_o, \omega_o)$，引入了入射点 $p_i$ 和出射点 $p_o$ 的空间距离参数。
 
 ### 多层BRDF的混合策略
 
 - 串行混合（Serial Layering）：光依次穿过每一层，每层按照菲涅尔比例分配反射和透射能量。
--   公式：f_total = f_top + T_top^2 * f_bottom / (1 - f_top * f_bottom)，其中T_top = 1 - F_top。
--   串行混合物理正确但计算复杂，分母中的f_top * f_bottom项（层间多次反射）通常被忽略。
+-   公式：$f_{\text{total}} = f_{\text{top}} + T_{\text{top}}^2 \cdot f_{\text{bottom}} / (1 - f_{\text{top}} \cdot f_{\text{bottom}})$，其中 $T_{\text{top}} = 1 - F_{\text{top}}$。
+-   串行混合物理正确但计算复杂，分母中的 $f_{\text{top}} \cdot f_{\text{bottom}}$ 项（层间多次反射）通常被忽略。
 - 并行混合（Parallel Mixing）：假设每层占据表面的一部分面积，按权重加权平均。
--   公式：f_total = w1 * f1 + w2 * f2 + ...，其中Σwi = 1。
+-   公式：$f_{\text{total}} = w_1 \cdot f_1 + w_2 \cdot f_2 + \cdots$，其中 $\sum w_i = 1$。
 -   并行混合简单但不物理正确，适用于无法明确分层的材质（如混合纤维的布料）。
-- 加权混合（Weighted Blending）：UE5使用的实用方案，通过clearcoat参数控制顶层权重：f = clearcoat * f_coat + (1 - clearcoat) * f_base，并手动调整权重确保能量守恒。
+- 加权混合（Weighted Blending）：UE5使用的实用方案，通过clearcoat参数控制顶层权重：$f = \text{clearcoat} \cdot f_{\text{coat}} + (1 - \text{clearcoat}) \cdot f_{\text{base}}$，并手动调整权重确保能量守恒。
 
 
 ## 🛠 工程实践
 
 ### 汽车漆面渲染（Clear Coat + Metallic Base）
 
-- 汽车漆面是多层材质的经典案例：最外层是透明清漆（roughness≈0.1-0.3），中间是金属漆层（roughness≈0.3-0.6），最内层是底漆。
+- 汽车漆面是多层材质的经典案例：最外层是透明清漆（$\text{roughness} \approx 0.1\text{--}0.3$），中间是金属漆层（$\text{roughness} \approx 0.3\text{--}0.6$），最内层是底漆。
 - 在UE5中，使用Clear Coat输入引脚即可启用：Clear Coat参数控制顶层强度（0-1），Clear Coat Roughness控制顶层粗糙度。
 - 底层使用标准的Metallic-Roughness参数（Base Color、Metallic、Roughness）。
 - Clear Coat的法线可以独立于底层法线（使用Clear Coat Normal Map），模拟清漆层的微观凹凸。
-- 关键细节：Clear Coat层的F0固定为0.04（透明介质），roughness通常低于底层（清漆比底漆更光滑）。
+- 关键细节：Clear Coat层的 $F_0$ 固定为0.04（透明介质），roughness通常低于底层（清漆比底漆更光滑）。
 
 ### 皮肤渲染（SSS + Oil Layer）
 
@@ -79,9 +79,9 @@ tags: ["clearcoat", "sss", "multi-layer", "disney-brdf"]
 ### Split Sum在多层材质中的应用
 
 - 对于Clear Coat材质，间接Specular需要考虑两层BRDF的叠加：
--   顶层IBL：使用Clear Coat的roughness采样预滤波贴图，F0=0.04。
--   底层IBL：使用Base的roughness采样预滤波贴图，F0由metallic决定。
--   总Specular IBL = F_coat * IBL_coat + (1-F_coat)^2 * IBL_base。
+-   顶层IBL：使用Clear Coat的roughness采样预滤波贴图，$F_0 = 0.04$。
+-   底层IBL：使用Base的roughness采样预滤波贴图，$F_0$ 由metallic决定。
+-   总Specular IBL = $F_{\text{coat}} \cdot \text{IBL}_{\text{coat}} + (1 - F_{\text{coat}})^2 \cdot \text{IBL}_{\text{base}}$。
 - 由于预滤波贴图是按roughness级别存储的，两层可以使用同一张预滤波贴图的不同LOD级别。
 - BRDF LUT可以复用（与材质层数无关），但需要注意每层的NdotV可能不同（如果法线不同）。
 
@@ -90,9 +90,9 @@ tags: ["clearcoat", "sss", "multi-layer", "disney-brdf"]
 
 ### 多层BRDF的能量守恒问题
 
-- 简单的线性叠加 f_total = f1 + f2 会导致总反射率超过1（尤其在掠射角时，两层的菲涅尔反射率都接近100%）。
-- 正确的串行混合需要考虑层间多次反射：f_total = f_top + T_top^2 * f_bottom * Σ(f_top * f_bottom)^n（无穷级数）。
-- 工程中通常忽略高阶项（n≥2），使用 f_total ≈ f_top + T_top^2 * f_bottom 作为一阶近似。
+- 简单的线性叠加 $f_{\text{total}} = f_1 + f_2$ 会导致总反射率超过1（尤其在掠射角时，两层的菲涅尔反射率都接近100%）。
+- 正确的串行混合需要考虑层间多次反射：$f_{\text{total}} = f_{\text{top}} + T_{\text{top}}^2 \cdot f_{\text{bottom}} \cdot \sum_{n=0}^{\infty}(f_{\text{top}} \cdot f_{\text{bottom}})^n$（无穷级数）。
+- 工程中通常忽略高阶项（$n \geq 2$），使用 $f_{\text{total}} \approx f_{\text{top}} + T_{\text{top}}^2 \cdot f_{\text{bottom}}$ 作为一阶近似。
 - 即使是一阶近似，在掠射角时也可能出现能量略超1的情况（因为Schlick近似本身的误差），需要额外的能量钳制。
 - 验证方法：在均匀白光下渲染roughness=0的多层球体，检查边缘是否出现过亮区域。
 

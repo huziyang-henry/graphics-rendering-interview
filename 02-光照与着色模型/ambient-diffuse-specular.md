@@ -30,14 +30,14 @@ tags: ["ambient", "diffuse", "specular", "lighting"]
 
 - 真实世界中，物体不仅接收来自光源的直接照射，还接收来自周围环境的间接光照（其他物体表面的反射光、天空散射光等）。
 - 精确计算间接光照需要全局光照算法（光线追踪、辐射度等），计算量极大。
-- Ambient是对这一复杂过程的极简近似：假设从所有方向均匀入射的常量光照，计算公式为 I_ambient = k_a * I_a，其中k_a为环境光系数，I_a为环境光强度。
+- Ambient是对这一复杂过程的极简近似：假设从所有方向均匀入射的常量光照，计算公式为 $I_{\text{ambient}} = k_a \cdot I_a$，其中 $k_a$ 为环境光系数，$I_a$ 为环境光强度。
 - 物理直觉：Ambient模拟的是光在场景中的「漫反射弹射」——光从物体A反射到物体B，再从B反射到C……经过多次弹射后趋于均匀分布。
 - 更高级的环境光近似包括球谐函数（Spherical Harmonics, SH）光照、环境光遮蔽（Ambient Occlusion, AO）等。
 
 ### 漫反射（Diffuse）的物理直觉
 
 - 当光照射到非金属粗糙表面时，大部分光能进入材料内部，在微观颗粒之间经历多次散射（吸收和重新发射），最终以近似均匀的方向分布从入射点附近射出。
-- 这一过程遵循Lambert余弦定律：表面接收的光能量与入射角余弦成正比。公式为 I_diffuse = k_d * I_light * max(N · L, 0)。
+- 这一过程遵循Lambert余弦定律：表面接收的光能量与入射角余弦成正比。公式为 $I_{\text{diffuse}} = k_d \cdot I_{\text{light}} \cdot \max(\mathbf{N} \cdot \mathbf{L}, 0)$。
 - Lambert模型的物理含义：单位面积上接收到的光通量随入射角增大而减小——倾斜照射时，同样的光束覆盖更大的表面积。
 - 漫反射光的颜色由材料本身的吸收特性决定：白光照射红色物体时，绿色和蓝色分量被吸收，只有红色分量被散射出来。
 - 漫反射光的偏振态是随机的（因为多次散射打乱了光的偏振方向），这也是区分漫反射和镜面反射的方法之一。
@@ -45,7 +45,7 @@ tags: ["ambient", "diffuse", "specular", "lighting"]
 ### 镜面反射（Specular）的物理直觉
 
 - 镜面反射发生在材料表面（而非内部），光在表面微观平整区域发生「镜面」反射，反射角等于入射角。
-- 对于理想镜面，所有光沿反射方向R射出；对于粗糙表面，微表面的朝向随机分布，高光在R附近散开。
+- 对于理想镜面，所有光沿反射方向 $\mathbf{R}$ 射出；对于粗糙表面，微表面的朝向随机分布，高光在 $\mathbf{R}$ 附近散开。
 - Specular不改变光的颜色（对非金属而言），因为反射发生在表面，光没有进入材料内部被吸收。
 - 高光的形状和强度取决于表面粗糙度：越光滑的表面高光越集中越亮，越粗糙的表面高光越分散越柔和。
 
@@ -85,10 +85,10 @@ tags: ["ambient", "diffuse", "specular", "lighting"]
 
 ### Diffuse能量不守恒问题
 
-- 经典的Lambert Diffuse公式 I = k_d * (N · L) 本身是能量守恒的（半球积分等于pi，需要除以pi归一化）。
-- 但在实际Shader中，很多实现省略了1/pi的归一化因子，导致Diffuse反射的能量偏大。
-- 在PBR中，正确的Lambert Diffuse应为 f_diffuse = albedo / pi，这个1/pi因子确保了BRDF的积分守恒。
-- 如果从传统管线迁移到PBR管线，忘记添加1/pi会导致整体亮度偏高约3.14倍（约+5 EV），需要重新校准所有材质参数。
+- 经典的Lambert Diffuse公式 $I = k_d \cdot (\mathbf{N} \cdot \mathbf{L})$ 本身是能量守恒的（半球积分等于 $\pi$，需要除以 $\pi$ 归一化）。
+- 但在实际Shader中，很多实现省略了 $1/\pi$ 的归一化因子，导致Diffuse反射的能量偏大。
+- 在PBR中，正确的Lambert Diffuse应为 $f_{\text{diffuse}} = \frac{\text{albedo}}{\pi}$，这个 $1/\pi$ 因子确保了BRDF的积分守恒。
+- 如果从传统管线迁移到PBR管线，忘记添加 $1/\pi$ 会导致整体亮度偏高约 $3.14$ 倍（约 $+5$ EV），需要重新校准所有材质参数。
 
 ### Ambient和Diffuse的混淆
 
@@ -102,9 +102,13 @@ tags: ["ambient", "diffuse", "specular", "lighting"]
 ### PBR如何重新定义这三个概念？
 
 - 在PBR中，Ambient不再是一个独立的常量，而是通过IBL系统精确计算：间接Diffuse使用辐照度图（Irradiance Map），间接Specular使用预滤波环境贴图（Prefiltered Environment Map）。
-- Diffuse在PBR中被重新建模为能量守恒的Lambert模型（除以pi），并且与Specular通过菲涅尔效应（Fresnel）进行能量分配：k_d = (1 - F) * (1 - metallic)。
+- Diffuse在PBR中被重新建模为能量守恒的Lambert模型（除以 $\pi$），并且与Specular通过菲涅尔效应（Fresnel）进行能量分配：$k_d = (1 - F) \cdot (1 - \text{metallic})$。
 - Specular在PBR中由Cook-Torrance微表面BRDF精确描述，包含法线分布函数（NDF）、菲涅尔项（F）和几何遮蔽项（G）三个物理量。
-- 传统三分量的简单叠加被替换为物理正确的积分方程：Lo = Le + ∫[f(l,v) * Li(l) * (n·l)] dl，其中f(l,v)就是BRDF。
+- 传统三分量的简单叠加被替换为物理正确的积分方程：
+
+$$L_o = L_e + \int f(\mathbf{l}, \mathbf{v}) \cdot L_i(\mathbf{l}) \cdot (\mathbf{n} \cdot \mathbf{l}) \, d\mathbf{l}$$
+
+其中 $f(\mathbf{l}, \mathbf{v})$ 就是BRDF。
 
 ### Split Sum近似如何处理环境光的Specular分量？
 

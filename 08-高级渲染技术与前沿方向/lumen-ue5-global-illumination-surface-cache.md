@@ -25,8 +25,7 @@ tags: ["lumen", "ue5", "surface-cache", "dynamic-gi"]
 
 ### Surface Cache（表面缓存）系统
 
-- Surface Cache是Lumen的核心数据结构，本质上是一个\
-- ，但与传统Lightmap有本质区别
+- Surface Cache是Lumen的核心数据结构，本质上是一个动态全局光照缓存，但与传统Lightmap有本质区别
 - 传统Lightmap：基于UV空间，预先烘焙，静态不变；Surface Cache：基于屏幕空间（Screen Space），每帧动态更新
 - Surface Cache以场景表面的Card（面片）为单位组织数据，每个Card存储其表面的辐照度（Irradiance）和方向信息
 - Card的分辨率根据屏幕空间投影大小动态调整：靠近相机的Card分辨率高，远处的Card分辨率低，自动适配视点
@@ -90,9 +89,7 @@ tags: ["lumen", "ue5", "surface-cache", "dynamic-gi"]
 ### Surface Cache的更新延迟
 
 - Surface Cache并非每帧完全更新，而是采用部分更新策略（每帧更新一部分Card），这意味着间接光照的变化存在1-2帧的延迟
-- 当光源快速移动或场景发生剧烈变化时，间接光照的更新可能跟不上，出现\
-- 或\
-- 效果
+- 当光源快速移动或场景发生剧烈变化时，间接光照的更新可能跟不上，出现光照滞后（Lighting Lag）或闪烁（Flickering）效果
 - 对于快速移动的动态光源（如手电筒、爆炸），Lumen的间接光照响应可能不够及时
 - 缓解方案：增加Lumen Scene Lighting Update Frequency，但会带来额外的性能开销
 

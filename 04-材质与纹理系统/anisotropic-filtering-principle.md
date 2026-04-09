@@ -30,7 +30,7 @@ tags: ["af", "anisotropic-filtering", "texture-filtering"]
 
 ### 各向异性过滤的工作原理
 
-- GPU通过分析纹理坐标的偏导数矩阵（ddx(uv)和ddy(uv)），确定纹理在屏幕空间中的拉伸方向和比例。
+- GPU通过分析纹理坐标的偏导数矩阵（ $\text{ddx}(\mathbf{uv})$ 和 $\text{ddy}(\mathbf{uv})$ ），确定纹理在屏幕空间中的拉伸方向和比例。
 - 沿最大变化方向（长轴）将采样区域切分为多个子区域，每个子区域分别进行双线性采样。
 - AF的倍数（2x/4x/8x/16x）表示沿长轴方向最多进行的采样次数。16x AF意味着最多进行16次双线性采样。
 - GPU硬件使用各向异性LOD计算：分别计算沿主轴和副轴的LOD值，沿主轴方向在多个mipmap层级间采样。
@@ -58,7 +58,7 @@ tags: ["af", "anisotropic-filtering", "texture-filtering"]
 
 ### AF与Mipmap的交互
 
-AF依赖于mipmap chain的正确生成。如果没有mipmap，AF无法工作（因为没有多个LOD层级可供选择）。AF的采样次数是在三线性过滤的基础上增加的，因此AF + Trilinear的总采样次数为 AF_level * 2（每个子区域做双线性采样）到 AF_level * 4（跨两个mipmap层级的三线性插值）。
+AF依赖于mipmap chain的正确生成。如果没有mipmap，AF无法工作（因为没有多个LOD层级可供选择）。AF的采样次数是在三线性过滤的基础上增加的，因此AF + Trilinear的总采样次数为 $\text{AF\_level} \times 2$ （每个子区域做双线性采样）到 $\text{AF\_level} \times 4$ （跨两个mipmap层级的三线性插值）。
 
 
 ## ⚠️ 踩坑经验

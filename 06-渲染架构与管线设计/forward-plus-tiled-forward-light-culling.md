@@ -31,7 +31,7 @@ tags: ["forward-plus", "tiled-forward", "light-culling", "tile"]
 - 使用 Compute Shader（或 Fragment Shader）遍历所有光源，判断每个光源影响哪些 Tile（基于光源的 Screen-Space Bounding Volume 与 Tile 的 AABB 相交测试）。
 - 将每个 Tile 的光源索引列表写入一个全局的 Light Index List（存储在 SSBO 或 UAV 中）。
 - 在 Forward 渲染的 Fragment Shader 中，根据当前片元所在的 Tile 查询 Light Index List，只遍历该 Tile 的光源计算光照。
-- 复杂度从 O(Pixels × M) 降低到 O(Pixels × K)，其中 K 是每个 Tile 的平均光源数（通常 K << M）。
+- 复杂度从 $O(\text{Pixels} \times M)$ 降低到 $O(\text{Pixels} \times K)$ ，其中 $K$ 是每个 Tile 的平均光源数（通常 $K \ll M$ ）。
 
 ### Clustered Forward 渲染原理
 
@@ -52,7 +52,7 @@ tags: ["forward-plus", "tiled-forward", "light-culling", "tile"]
 ### Tile 大小的选择
 
 - 常见的 Tile 大小为 16×16 或 32×32 像素。较小的 Tile 提供更精细的光源剔除，但增加了 Tile 数量和 Light Index List 的存储开销。
-- 32×32 是一个较好的平衡点：在 1080p 下约有 60×34 = 2040 个 Tile，Light Index List 的存储开销可控。
+- 32x32 是一个较好的平衡点：在 1080p 下约有 $60 \times 34 = 2040$ 个 Tile，Light Index List 的存储开销可控。
 - Tile 大小的选择应考虑 Wave/Warp 的执行效率：确保一个 Wave 可以处理一个完整的 Tile 行（NVIDIA Warp 大小为 32，AMD Wavefront 大小为 64）。
 
 ### Light Index List 的存储格式
@@ -96,7 +96,7 @@ tags: ["forward-plus", "tiled-forward", "light-culling", "tile"]
 ### Forward+ vs Clustered Forward 的对比
 
 - Tiled Forward（2D）：实现简单，适合光源分布较均匀的场景。但在深度方向上精度不足，远处的聚光灯可能被分配到不必要的 Tile。
-- Clustered Forward（3D）：在深度方向上也进行切分，光源归属更精确。但 Cluster 数量增加（通常 16×16×32 = 8192 个 Cluster vs 2040 个 Tile），内存和计算开销更大。
+- Clustered Forward（3D）：在深度方向上也进行切分，光源归属更精确。但 Cluster 数量增加（通常 $16 \times 16 \times 32 = 8192$ 个 Cluster vs 2040 个 Tile），内存和计算开销更大。
 - 在实际工程中，Clustered Forward 是更主流的选择，因为现代 GPU 的 Compute Shader 能力足以处理 3D Cluster 的 Culling 开销。
 
 ### Forward+ 在移动端的适用性

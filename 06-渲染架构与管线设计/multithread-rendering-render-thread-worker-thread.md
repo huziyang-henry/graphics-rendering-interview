@@ -90,8 +90,7 @@ tags: ["multithreading", "render-thread", "command-buffer", "frame-graph"]
 ### Worker Thread 负载不均衡
 
 - 如果场景中的物体分布不均匀（如某些区域物体密集、某些区域稀疏），Worker Thread 的剔除和命令录制工作量不均衡，导致部分 Thread 空闲等待。
-- 解决方案：使用 Work Stealing 策略——空闲的 Worker Thread 从其他 Thread 的任务队列中\
-- 任务执行。
+- 解决方案：使用 Work Stealing 策略——空闲的 Worker Thread 从其他 Thread 的任务队列中窃取任务执行。
 - 使用细粒度的任务划分：将剔除任务按空间划分（如每个 Worker Thread 负责一个屏幕区域），而不是按物体划分（可能导致负载不均衡）。
 - 动态调整 Worker Thread 的数量：根据当前帧的工作量动态创建/销毁 Worker Thread，避免不必要的线程创建开销。
 
@@ -107,9 +106,7 @@ tags: ["multithreading", "render-thread", "command-buffer", "frame-graph"]
 
 ### 下一代渲染架构的线程模型
 
-- GPU Driven Rendering 的普及使得 CPU 端的工作量进一步减少，Render Thread 的角色从\
-- 转变为\
-- 。
+- GPU Driven Rendering 的普及使得 CPU 端的工作量进一步减少，Render Thread 的角色从命令录制者转变为任务提交者。
 - Mesh Shader 和 Task Shader 使得 GPU 可以自主决定几何体的处理方式，CPU 只需要提交高层级的 Dispatch Command。
 - WGPU/WebGPU 的异步编程模型：使用 Promise 和 async/await 管理 GPU 操作的异步性，简化多线程渲染的开发。
 - 未来的渲染架构可能完全消除 Render Thread，由 GPU 自主管理渲染流程（如 GPU Driven Pipeline + Mesh Shader + Ray Tracing），CPU 只负责高层级的场景管理和资源调度。

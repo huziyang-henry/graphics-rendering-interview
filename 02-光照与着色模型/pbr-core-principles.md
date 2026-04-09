@@ -30,25 +30,25 @@ tags: ["pbr", "energy-conservation", "microfacet"]
 ### 微表面理论（Microfacet Theory）
 
 - 微表面理论假设：宏观上看似光滑的表面，在微观尺度上由无数微小平面（microfacet）组成，每个微表面都是一个完美的镜面反射器。
-- 每个微表面的法线方向不同，由法线分布函数（Normal Distribution Function, NDF）D(h)描述其统计分布，h为微表面法线方向。
-- 只有那些法线方向恰好等于半程向量h = normalize(l + v)的微表面，才能将光线l反射到视线方向v。
-- 表面粗糙度（roughness）决定了微表面法线的分散程度：roughness=0表示所有微表面法线一致（完美镜面），roughness=1表示法线完全随机分布（理想漫反射面）。
+- 每个微表面的法线方向不同，由法线分布函数（Normal Distribution Function, NDF） $D(\mathbf{h})$ 描述其统计分布， $\mathbf{h}$ 为微表面法线方向。
+- 只有那些法线方向恰好等于半程向量 $\mathbf{h} = \text{normalize}(\mathbf{l} + \mathbf{v})$ 的微表面，才能将光线 $\mathbf{l}$ 反射到视线方向 $\mathbf{v}$ 。
+- 表面粗糙度（roughness）决定了微表面法线的分散程度： $\text{roughness} = 0$ 表示所有微表面法线一致（完美镜面）， $\text{roughness} = 1$ 表示法线完全随机分布（理想漫反射面）。
 - 微表面理论统一了漫反射和镜面反射的描述框架，是PBR的理论基石。
 
 ### 能量守恒（Energy Conservation）
 
 - 能量守恒定律要求：表面反射和透射的总能量不能超过入射光的能量。
-- 在数学表达上，BRDF f(l,v)对所有入射方向的半球积分必须小于等于1/π（对于反射BRDF）。
+- 在数学表达上，BRDF $f(\mathbf{l}, \mathbf{v})$ 对所有入射方向的半球积分必须小于等于 $1/\pi$ （对于反射BRDF）。
 - 在PBR实践中，能量守恒体现在：Diffuse和Specular共享入射能量，菲涅尔效应决定了能量在两者之间的分配。
-- 具体公式：k_d + k_s <= 1，其中k_d是Diffuse比例，k_s是Specular比例。对于金属，k_d=0（所有能量被反射）；对于非金属，k_d = 1 - F（F为菲涅尔反射率）。
-- 传统Phong模型不满足能量守恒：spec = (R·V)^n 的半球积分远大于1，导致高光区域过亮，尤其在低roughness时问题严重。
+- 具体公式： $k_d + k_s \leq 1$ ，其中 $k_d$ 是Diffuse比例， $k_s$ 是Specular比例。对于金属， $k_d = 0$ （所有能量被反射）；对于非金属， $k_d = 1 - F$ （ $F$ 为菲涅尔反射率）。
+- 传统Phong模型不满足能量守恒： $\text{spec} = (\mathbf{R} \cdot \mathbf{V})^n$ 的半球积分远大于1，导致高光区域过亮，尤其在低 $\text{roughness}$ 时问题严重。
 
 ### 菲涅尔效应（Fresnel Effect）
 
 - 菲涅尔效应描述了一个重要的物理现象：当观察角度从正射变为掠射时，所有材质的反射率都会增大，在掠射角（90度）时趋近于100%。
 - 日常生活中可以观察到：水面正看时透明，掠射看时像镜子；树叶正看时绿色，掠射看时泛白光。
-- 菲涅尔效应的精确公式涉及复数折射率的偏振光计算（Fresnel方程），工程中常用Schlick近似：F(θ) = F0 + (1 - F0)(1 - cosθ)^5。
-- F0是正射时的反射率：非金属（绝缘体）F0约0.02-0.08（通常取0.04），金属（导体）F0约0.5-1.0且与波长相关（有色反射）。
+- 菲涅尔效应的精确公式涉及复数折射率的偏振光计算（Fresnel方程），工程中常用Schlick近似： $F(\theta) = F_0 + (1 - F_0)(1 - \cos\theta)^5$ 。
+- $F_0$ 是正射时的反射率：非金属（绝缘体） $F_0$ 约 $0.02$ - $0.08$ （通常取 $0.04$ ），金属（导体） $F_0$ 约 $0.5$ - $1.0$ 且与波长相关（有色反射）。
 - 菲涅尔效应是PBR区分金属和非金属的核心机制，也是传统光照模型缺失的关键物理现象。
 
 
@@ -57,21 +57,21 @@ tags: ["pbr", "energy-conservation", "microfacet"]
 ### Metallic-Roughness工作流
 
 - Metallic-Roughness是当前最主流的PBR工作流，由Disney于2012年提出，被UE4/Unity/Blender等广泛采用。
-- 核心参数：Base Color（反照率）、Metallic（金属度，0或1）、Roughness（粗糙度，0-1）、Normal Map（法线贴图）、AO（环境光遮蔽）。
-- Metallic贴图通常为二值化（0或1），中间值仅用于过渡区域（如金属上的灰尘、锈蚀）。
-- Roughness控制高光宽度和环境反射的模糊程度：0=完美镜面，1=完全漫反射。
+- 核心参数：Base Color（反照率）、Metallic（金属度，0或1）、Roughness（粗糙度， $0$ - $1$ ）、Normal Map（法线贴图）、AO（环境光遮蔽）。
+- Metallic贴图通常为二值化（ $0$ 或 $1$ ），中间值仅用于过渡区域（如金属上的灰尘、锈蚀）。
+- Roughness控制高光宽度和环境反射的模糊程度： $0$ =完美镜面， $1$ =完全漫反射。
 - 优势：参数直觉性强、材质定义明确（金属vs非金属）、跨引擎兼容性好（glTF 2.0标准格式）。
 
 ### Specular-Glossiness工作流
 
-- Specular-Glossiness是另一种PBR工作流，核心参数为：Diffuse Color、Specular Color（F0颜色）、Glossiness（光泽度 = 1 - roughness）。
-- 优势：可以更精确地控制F0值（不限于0.04和albedo两个极端），适合需要特殊反射率的材质（如宝石、某些塑料）。
+- Specular-Glossiness是另一种PBR工作流，核心参数为：Diffuse Color、Specular Color（ $F_0$ 颜色）、Glossiness（光泽度 $= 1 - \text{roughness}$ ）。
+- 优势：可以更精确地控制 $F_0$ 值（不限于 $0.04$ 和 $\text{albedo}$ 两个极端），适合需要特殊反射率的材质（如宝石、某些塑料）。
 - 劣势：参数空间更大，更容易调出非物理的结果（如同时设置高Diffuse和高Specular）；不如Metallic-Roughness直觉。
 - Substance Painter/Designer同时支持两种工作流，可以互相转换。UE4从4.26版本开始推荐Metallic-Roughness。
 
 ### PBR材质验证工具
 
-- Substance Painter的PBR Validator可以检测材质是否符合物理约束（如金属的Diffuse应为黑色、非金属的Specular应在0.02-0.08范围）。
+- Substance Painter的PBR Validator可以检测材质是否符合物理约束（如金属的Diffuse应为黑色、非金属的Specular应在 $0.02$ - $0.08$ 范围）。
 - UE4的Material Editor中可以通过Debug View（如Shading Complexity、Quad Overdraw）验证PBR材质的正确性。
 - glTF Validator可以检查导出的glTF 2.0文件中PBR金属度贴图和粗糙度贴图的值域是否合法。
 
@@ -80,23 +80,23 @@ tags: ["pbr", "energy-conservation", "microfacet"]
 
 ### roughness不能为0
 
-- roughness=0意味着完美镜面反射，但在实时渲染中会导致问题：GGX NDF在roughness=0时退化为Dirac delta函数，高光变成一个无限小的亮点。
+- roughness=0意味着完美镜面反射，但在实时渲染中会导致问题：GGX NDF在 $\text{roughness} = 0$ 时退化为Dirac delta函数，高光变成一个无限小的亮点。
 - 在屏幕空间中，这个亮点可能落在像素之间而完全不可见，或者因为数值精度问题产生闪烁。
-- 工程实践：通常将roughness的最小值钳制为0.04~0.045，既保持高度光滑的外观又避免数值问题。
-- 在预滤波环境贴图的mipmap采样中，roughness=0对应mipmap level 0（原始贴图），此时采样结果取决于单个像素，容易产生噪点。
+- 工程实践：通常将roughness的最小值钳制为 $0.04 \sim 0.045$ ，既保持高度光滑的外观又避免数值问题。
+- 在预滤波环境贴图的mipmap采样中， $\text{roughness} = 0$ 对应mipmap level $0$ （原始贴图），此时采样结果取决于单个像素，容易产生噪点。
 
 ### metallic的过渡处理
 
-- Metallic贴图在金属和非金属交界处不应是硬边（0/1跳变），否则菲涅尔效应会在边界处产生明显的不连续。
-- 过渡区域（如金属表面的灰尘、氧化层、油漆）的metallic值应在0-1之间平滑过渡。
+- Metallic贴图在金属和非金属交界处不应是硬边（ $0/1$ 跳变），否则菲涅尔效应会在边界处产生明显的不连续。
+- 过渡区域（如金属表面的灰尘、氧化层、油漆）的metallic值应在 $0$ - $1$ 之间平滑过渡。
 - 但过渡区域的宽度需要控制——过宽的过渡会导致材质看起来「脏」或不确定。
-- 经验法则：过渡区域通常不超过2-3像素宽，在纹理分辨率足够高时（2048+）这不是问题。
+- 经验法则：过渡区域通常不超过 $2$ - $3$ 像素宽，在纹理分辨率足够高时（ $2048+$ ）这不是问题。
 
 ### Base Color的值域限制
 
-- PBR要求Base Color的亮度在合理范围内：非金属的Luminance应在50-240 sRGB之间，金属的Luminance应在180-255 sRGB之间。
-- 纯黑（0,0,0）的Base Color在物理上不存在——即使最暗的炭黑也有约0.02-0.04的反照率。
-- 纯白（255,255,255）的Base Color意味着100%反射率，违反能量守恒（没有光被吸收转化为热量）。
+- PBR要求Base Color的亮度在合理范围内：非金属的Luminance应在 $50$ - $240$ sRGB之间，金属的Luminance应在 $180$ - $255$ sRGB之间。
+- 纯黑（ $0, 0, 0$ ）的Base Color在物理上不存在——即使最暗的炭黑也有约 $0.02$ - $0.04$ 的反照率。
+- 纯白（ $255, 255, 255$ ）的Base Color意味着 $100\%$ 反射率，违反能量守恒（没有光被吸收转化为热量）。
 - Substance Painter的PBR Validator会将超出范围的Base Color标记为警告。
 
 

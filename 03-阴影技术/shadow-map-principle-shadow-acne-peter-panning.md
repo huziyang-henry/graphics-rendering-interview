@@ -27,7 +27,7 @@ tags: ["shadow-map", "shadow-acne", "peter-panning", "depth-bias"]
 ### 两遍渲染流程
 
 - 第一遍（Shadow Pass）：将摄像机替换为光源，以光源为视点渲染整个场景，将每个片元的深度值写入深度缓冲区，生成Shadow Map。对于方向光使用正交投影，点光源使用透视投影。
-- 第二遍（Lighting Pass）：正常从摄像机视角渲染场景。在片元着色器中，将当前片元的世界坐标变换到光源空间，得到其在Shadow Map中对应的深度值z_receiver，然后与Shadow Map中存储的深度值z_shadow进行比较。如果z_receiver > z_shadow，说明该片元被遮挡，处于阴影中；否则处于光照区域。
+- 第二遍（Lighting Pass）：正常从摄像机视角渲染场景。在片元着色器中，将当前片元的世界坐标变换到光源空间，得到其在Shadow Map中对应的深度值 $z_{\text{receiver}}$，然后与Shadow Map中存储的深度值 $z_{\text{shadow}}$ 进行比较。如果 $z_{\text{receiver}} > z_{\text{shadow}}$，说明该片元被遮挡，处于阴影中；否则处于光照区域。
 
 ### Shadow Acne（阴影粉刺）的成因
 
@@ -35,7 +35,7 @@ Shadow Acne表现为物体表面出现条纹状或波纹状的明暗交替伪影
 
 ### Peter Panning（彼得潘现象）的成因
 
-为了解决Shadow Acne，我们通常会对Shadow Map的深度值添加一个偏移量（Depth Bias），使得比较时更倾向于判定为光照。然而当偏移量设置过大时，阴影会从物体表面u201C脱离u201D，表现为物体似乎悬浮在地面上方（如同彼得潘飞行），这种现象被称为Peter Panning。偏移量越大，阴影脱离越明显，尤其在物体与接收面距离较近时尤为突出。
+为了解决Shadow Acne，我们通常会对Shadow Map的深度值添加一个偏移量（Depth Bias），使得比较时更倾向于判定为光照。然而当偏移量设置过大时，阴影会从物体表面"脱离"，表现为物体似乎悬浮在地面上方（如同彼得潘飞行），这种现象被称为Peter Panning。偏移量越大，阴影脱离越明显，尤其在物体与接收面距离较近时尤为突出。
 
 
 ## 🛠 工程实践
@@ -43,12 +43,16 @@ Shadow Acne表现为物体表面出现条纹状或波纹状的明暗交替伪影
 ### 深度偏移（Depth Bias）的调参策略
 
 - 固定偏移（Constant Bias）：直接给深度值加一个固定值。简单但无法适应不同角度的表面，容易在斜面上出现Shadow Acne或Peter Panning。
-- 斜率偏移（Slope-Scaled Bias）：根据表面法线与光线方向的夹角动态调整偏移量。公式为bias = constantBias + slopeFactor * dot(normal, lightDir)。这是目前最常用的方案，OpenGL的glPolygonOffset()和DirectX的RasterizerState都支持这种双参数偏移。
+- 斜率偏移（Slope-Scaled Bias）：根据表面法线与光线方向的夹角动态调整偏移量。公式为：
+
+$$\text{bias} = \text{constantBias} + \text{slopeFactor} \cdot \mathbf{n} \cdot \mathbf{l}$$
+
+其中 $\mathbf{n}$ 为表面法线，$\mathbf{l}$ 为光线方向。这是目前最常用的方案，OpenGL的glPolygonOffset()和DirectX的RasterizerState都支持这种双参数偏移。
 - 法线偏移（Normal Bias）：在将片元坐标变换到光源空间之前，沿法线方向偏移顶点位置，而非直接修改深度值。这种方式在斜面上效果更好，但可能导致几何形状的微小变形。
 
 ### 指数偏移（Exponential Shadow Map, ESM）
 
-ESM通过将深度比较转化为指数函数的乘法运算来缓解精度问题。存储exp(-c * z)而非原始深度，比较时计算exp(-c * z_receiver) * exp(c * z_shadowmap)，当结果小于1时判定为阴影。这种方式天然地提供了“软”的深度比较边界，有效减少了Shadow Acne。
+ESM通过将深度比较转化为指数函数的乘法运算来缓解精度问题。存储 $\exp(-c \cdot z)$ 而非原始深度，比较时计算 $\exp(-c \cdot z_{\text{receiver}}) \cdot \exp(c \cdot z_{\text{shadowmap}})$，当结果小于 $1$ 时判定为阴影。这种方式天然地提供了"软"的深度比较边界，有效减少了Shadow Acne。
 
 ### 背面剔除（Back-face Culling）技巧
 

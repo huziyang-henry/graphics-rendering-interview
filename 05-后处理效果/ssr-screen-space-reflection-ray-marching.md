@@ -25,10 +25,9 @@ tags: ["ssr", "screen-space-reflection", "ray-marching", "hiz"]
 
 ### Ray Marching基本原理
 
-- 对于屏幕上的每个像素，根据其世界空间位置和法线计算反射方向：R = reflect(-V, N)，其中V为视线方向，N为表面法线
+- 对于屏幕上的每个像素，根据其世界空间位置和法线计算反射方向： $\mathbf{R} = \text{reflect}(-\mathbf{V},\ \mathbf{N})$ ，其中 $\mathbf{V}$ 为视线方向， $\mathbf{N}$ 为表面法线
 - 从片元位置出发，沿反射方向在屏幕空间的深度缓冲中进行步进（Ray Marching），每一步检查当前射线位置处的深度与深度缓冲中的值是否相交
-- 当射线深度大于深度缓冲中的值（即射线\
-- 了场景表面）时，认为找到了交点
+- 当射线深度大于深度缓冲中的值（即射线穿透了场景表面）时，认为找到了交点
 - 在交点处采样场景颜色缓冲，作为该像素的反射颜色
 
 ### Hierarchical Z-Buffer（HiZ）加速
@@ -58,7 +57,7 @@ tags: ["ssr", "screen-space-reflection", "ray-marching", "hiz"]
 
 - SSR无法获取屏幕外信息，必须有Fallback方案：反射探针（Reflection Probe）或环境贴图（Cubemap）
 - 常见的混合策略：根据SSR的有效性（是否找到有效交点）和反射距离，在SSR结果与环境贴图之间进行混合
-- 混合公式：reflectionColor = lerp(environmentColor, ssrColor, ssrValidity)，其中ssrValidity基于交点质量和距离衰减
+- 混合公式： $\text{reflectionColor} = \text{lerp}(\text{environmentColor},\ \text{ssrColor},\ \text{ssrValidity})$ ，其中 $\text{ssrValidity}$ 基于交点质量和距离衰减
 - 对于角色、粒子等动态物体，通常直接使用环境贴图作为反射来源
 
 ### 与PBR的IBL配合

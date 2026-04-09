@@ -26,8 +26,12 @@ tags: ["dof", "bokeh", "coc", "depth-of-field"]
 ### Circle of Confusion（CoC）计算
 
 - CoC（弥散圆）是DOF的核心参数，它描述了某个像素的模糊程度。CoC越大，该像素越模糊
-- CoC的计算基于薄透镜模型：CoC = |apertureSize * focalLength * |depth - focusDistance| / (depth * (focalLength - focusDistance))|
-- 简化公式（常用于实时渲染）：CoC = abs(depth - focusDistance) * cocScale，其中cocScale由光圈大小和焦距决定
+- CoC的计算基于薄透镜模型：
+
+$$\text{CoC} = \left| \frac{a \cdot f \cdot |d - d_f|}{d \cdot (f - d_f)} \right|$$
+
+其中 $a$ 为光圈大小（apertureSize）， $f$ 为焦距（focalLength）， $d$ 为像素深度（depth）， $d_f$ 为对焦距离（focusDistance）
+- 简化公式（常用于实时渲染）： $\text{CoC} = |\text{depth} - \text{focusDistance}| \cdot \text{cocScale}$ ，其中 $\text{cocScale}$ 由光圈大小和焦距决定
 - 对焦距离（Focus Distance）处的CoC为零（完全清晰），偏离对焦距离越远CoC越大（越模糊）
 
 ### 散景滤波器（Bokeh Filter）
@@ -49,8 +53,7 @@ tags: ["dof", "bokeh", "coc", "depth-of-field"]
 ### 前景模糊与背景模糊的分别处理
 
 - 背景模糊（Background Blur）：被模糊的物体在对焦平面之后，模糊效果相对简单，可以使用标准的散景滤波器
-- 前景模糊（Foreground Blur）：被模糊的物体在对焦平面之前，需要特殊处理——前景物体可能部分遮挡对焦区域，模糊时需要将前景的颜色\
-- 到被遮挡的区域
+- 前景模糊（Foreground Blur）：被模糊的物体在对焦平面之前，需要特殊处理——前景物体可能部分遮挡对焦区域，模糊时需要将前景的颜色扩散到被遮挡的区域
 - 前景模糊的实现通常需要额外的Pass：先提取前景层（基于深度阈值），对前景层进行散景模糊，然后以Alpha混合的方式叠加到背景上
 - 前景模糊的质量直接影响DOF的整体真实感，是区分高质量DOF和简单DOF的关键
 

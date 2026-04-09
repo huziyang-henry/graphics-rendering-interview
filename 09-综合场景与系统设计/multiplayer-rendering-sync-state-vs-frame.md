@@ -42,8 +42,7 @@ tags: ["multiplayer", "networking", "state-sync", "frame-sync", "interpolation"]
 ### 渲染层面的同步策略
 
 - 插值策略：位置使用平滑插值（Cubic/Hermite Spline），旋转使用球面插值（SLERP），动画状态使用CrossFade
-- 预测和回滚的视觉处理：回滚时使用\
-- 而非逐帧回放，减少视觉跳变
+- 预测和回滚的视觉处理：回滚时使用状态快照直接恢复而非逐帧回放，减少视觉跳变
 - 实体创建/销毁的延迟处理：新实体出现时使用Fade In效果，销毁时使用Fade Out
 
 

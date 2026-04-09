@@ -20,8 +20,8 @@ tags: ["phong", "blinn-phong", "specular"]
 ## 🎯 结论
 
 - Phong和Blinn-Phong的核心区别在于镜面反射（Specular）的计算方式不同。
-- Phong模型使用反射向量R与视线向量V的点积来计算高光：spec = pow(max(dot(R
-- Blinn-Phong模型使用半程向量H（H = normalize(L + V)）与法线N的点积：spec = pow(max(dot(N
+- Phong模型使用反射向量 $\mathbf{R}$ 与视线向量 $\mathbf{V}$ 的点积来计算高光：$S_{\text{spec}} = \max(\mathbf{R} \cdot \mathbf{V}, 0)^{\text{shininess}}$
+- Blinn-Phong模型使用半程向量 $\mathbf{H}$（$\mathbf{H} = \text{normalize}(\mathbf{L} + \mathbf{V})$）与法线 $\mathbf{N}$ 的点积：$S_{\text{spec}} = \max(\mathbf{N} \cdot \mathbf{H}, 0)^{\text{shininess}}$
 - Blinn-Phong在实践中更常用，原因包括：计算量更小（省去reflect运算）、高光形态更自然平滑、在掠射角表现更优。
 
 ## 📐 原理解析
@@ -29,29 +29,29 @@ tags: ["phong", "blinn-phong", "specular"]
 ### Phong光照模型的数学表达
 
 - Phong模型由Bui Tuong Phong于1975年提出，是最经典的局部光照模型之一。
-- 其镜面反射分量计算为：spec = (R · V)^shininess，其中R = reflect(-L, N) = 2(N·L)N - L。
+- 其镜面反射分量计算为：$S_{\text{spec}} = (\mathbf{R} \cdot \mathbf{V})^{\text{shininess}}$，其中 $\mathbf{R} = 2(\mathbf{N} \cdot \mathbf{L})\mathbf{N} - \mathbf{L}$。
 - reflect函数需要一次向量反射运算，涉及向量减法和标量乘法的组合。
-- 当视线方向V恰好等于反射方向R时，高光强度达到最大值1.0，随着偏离角度增大而衰减。
+- 当视线方向 $\mathbf{V}$ 恰好等于反射方向 $\mathbf{R}$ 时，高光强度达到最大值 $1.0$，随着偏离角度增大而衰减。
 
 ### Blinn-Phong光照模型的数学表达
 
 - Blinn-Phong由Jim Blinn于1977年提出，是对Phong模型的改进。
-- 半程向量H = normalize(L + V)，表示光线方向和视线方向的角平分线方向。
-- 镜面反射分量：spec = (N · H)^shininess，当H与N方向一致时高光最强。
-- 从几何角度看，N·H = cos(θ_h/2)，其中θ_h是L和V之间的夹角，因此Blinn-Phong的高光分布比Phong更宽。
+- 半程向量 $\mathbf{H} = \text{normalize}(\mathbf{L} + \mathbf{V})$，表示光线方向和视线方向的角平分线方向。
+- 镜面反射分量：$S_{\text{spec}} = (\mathbf{N} \cdot \mathbf{H})^{\text{shininess}}$，当 $\mathbf{H}$ 与 $\mathbf{N}$ 方向一致时高光最强。
+- 从几何角度看，$\mathbf{N} \cdot \mathbf{H} = \cos(\theta_h / 2)$，其中 $\theta_h$ 是 $\mathbf{L}$ 和 $\mathbf{V}$ 之间的夹角，因此Blinn-Phong的高光分布比Phong更宽。
 
 ### 两者的数学关系
 
-- 当N·H = cos(α)时，对应的Phong模型中R·V = cos(2α)，因此Blinn-Phong的高光衰减速度约为Phong的一半。
+- 当 $\mathbf{N} \cdot \mathbf{H} = \cos(\alpha)$ 时，对应的Phong模型中 $\mathbf{R} \cdot \mathbf{V} = \cos(2\alpha)$，因此Blinn-Phong的高光衰减速度约为Phong的一半。
 - 这意味着在相同的shininess参数下，Blinn-Phong的高光范围更广、边缘过渡更柔和。
-- 为了获得视觉上相近的高光效果，Blinn-Phong的shininess通常需要设置为Phong的2-4倍。
+- 为了获得视觉上相近的高光效果，Blinn-Phong的 $\text{shininess}$ 通常需要设置为Phong的 $2 \sim 4$ 倍。
 
 
 ## 🛠 工程实践
 
 ### 性能对比与工程选择
 
-- Blinn-Phong省去了reflect计算（Phong需要 R = 2(N·L)N - L），仅增加一次向量加法和normalize，在GPU上性能优势明显。
+- Blinn-Phong省去了reflect计算（Phong需要 $\mathbf{R} = 2(\mathbf{N} \cdot \mathbf{L})\mathbf{N} - \mathbf{L}$），仅增加一次向量加法和normalize，在GPU上性能优势明显。
 - 在片元着色器中，当处理百万级片元时，这一差异会累积为可观的性能提升。
 - Unity的Standard Shader和UE4的默认Lit材质均采用Blinn-Phong作为非PBR模式的默认选择。
 
@@ -75,19 +75,19 @@ vec3 H = normalize(L + V); float spec = pow(max(dot(N, H), 0.0), shininess);
 ### shininess参数的跨模型迁移
 
 - 将Phong材质切换为Blinn-Phong时，shininess值不能直接复用。经验法则是Blinn-Phong的shininess设为Phong的2-4倍。
-- 例如，Phong中shininess=32的效果，在Blinn-Phong中大约需要shininess=64~128才能获得相近的高光集中度。
+- 例如，Phong中 $\text{shininess} = 32$ 的效果，在Blinn-Phong中大约需要 $\text{shininess} = 64 \sim 128$ 才能获得相近的高光集中度。
 - 如果直接复用参数，会导致高光过于分散，材质看起来偏「塑料感」。
 
 ### 低精度平台上的pow精度问题
 
 - 在移动端GPU（如部分Mali、Adreno型号）上，GLSL的pow函数在指数较大时可能产生不精确结果。
-- 当shininess > 128时，pow(x, shininess)在x接近0时可能返回非零值（暗部高光闪烁），即所谓的「firefly」伪影。
+- 当 $\text{shininess} > 128$ 时，$\text{pow}(x, \text{shininess})$ 在 $x$ 接近 $0$ 时可能返回非零值（暗部高光闪烁），即所谓的「firefly」伪影。
 - 解决方案：在pow之前添加阈值判断，如 float spec = (NdotH > 0.004) ? pow(NdotH, shininess) : 0.0;，避免极小值的精度问题。
-- 另一种方案是使用exp(shininess * log(max(NdotH, 0.001)))来替代pow，虽然等价但某些GPU对exp+log的组合有更好的优化。
+- 另一种方案是使用 $\exp(\text{shininess} \cdot \log(\max(\text{NdotH}, 0.001)))$ 来替代 pow，虽然等价但某些GPU对 exp+log 的组合有更好的优化。
 
 ### 半程向量归一化遗漏
 
-- H = normalize(L + V)中的normalize不能省略。当L和V不共线时，L+V的长度不等于1。
+- $\mathbf{H} = \text{normalize}(\mathbf{L} + \mathbf{V})$ 中的 normalize 不能省略。当 $\mathbf{L}$ 和 $\mathbf{V}$ 不共线时，$\mathbf{L} + \mathbf{V}$ 的长度不等于 $1$。
 - 如果忘记normalize，高光强度和分布都会失真，尤其在光线和视线夹角较大的情况下更为明显。
 - 在延迟渲染（Deferred Shading）中，从G-Buffer读取的L和V可能已经归一化，但相加后仍需重新归一化。
 
@@ -97,7 +97,7 @@ vec3 H = normalize(L + V); float spec = pow(max(dot(N, H), 0.0), shininess);
 ### PBR中为何不再使用Phong/Blinn-Phong？
 
 - Phong/Blinn-Phong不是基于物理的模型：它们不满足能量守恒（反射光能量可能超过入射光），不包含菲涅尔效应，高光形状与真实世界观测不符。
-- PBR使用Cook-Torrance微表面BRDF替代，其中法线分布函数（NDF）GGX的高光「尾巴」比Blinn-Phong的cos^n衰减更接近真实材质测量数据（如MERL BRDF数据库）。
+- PBR使用Cook-Torrance微表面BRDF替代，其中法线分布函数（NDF）GGX的高光「尾巴」比Blinn-Phong的 $\cos^n$ 衰减更接近真实材质测量数据（如MERL BRDF数据库）。
 - Blinn-Phong可以看作一种特殊的NDF——其对应的法线分布为Phong分布，是GGX分布的一种近似。从这一角度看，Blinn-Phong是微表面理论的一个特例。
 
 ### Blinn-Phong的现代应用场景

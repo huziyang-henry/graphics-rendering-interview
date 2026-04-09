@@ -29,8 +29,7 @@ tags: ["virtual-texturing", "page-table", "feedback", "vt"]
 - 超大纹理（如16K x 16K或更大）被分割为固定大小的Page，常见Page尺寸为128x128或256x256像素。
 - 每个Page在虚拟纹理空间中有唯一的地址（Page Address），由（Mipmap Level, Page X, Page Y）三元组确定。
 - 显存中维护一个固定大小的Page Cache（页缓存），存储当前已加载的Page。Cache大小通常为128MB-512MB，远小于完整虚拟纹理的大小。
-- 当渲染时需要访问的Page不在Cache中时，触发\
-- （Page Fault），需要从磁盘加载该Page到Cache中。
+- 当渲染时需要访问的Page不在Cache中时，触发缺页中断（Page Fault），需要从磁盘加载该Page到Cache中。
 
 ### Page Table（页表）
 
@@ -60,8 +59,7 @@ tags: ["virtual-texturing", "page-table", "feedback", "vt"]
 
 - Page Cache使用LRU（Least Recently Used）或其变种策略管理：当Cache满时，淘汰最久未被访问的Page。
 - 改进的LRU策略考虑Page的Mipmap层级——高层级（低分辨率）的Page加载成本低，可以优先淘汰；低层级（高分辨率）的Page加载成本高，应尽量保留。
-- Page的引用计数：正在被渲染使用的Page不能被淘汰，即使它是最久未使用的。需要维护一个\
-- 集合来标记正在使用的Page。
+- Page的引用计数：正在被渲染使用的Page不能被淘汰，即使它是最久未使用的。需要维护一个锁定集合来标记正在使用的Page。
 - 预加载策略：根据相机运动方向预测即将需要的Page，提前加载以减少可见的Pop-in。
 
 ### Mipmapping在VT中的处理

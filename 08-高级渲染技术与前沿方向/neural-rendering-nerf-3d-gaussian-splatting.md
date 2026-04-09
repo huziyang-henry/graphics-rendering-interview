@@ -33,15 +33,15 @@ tags: ["neural-rendering", "nerf", "3dgs", "gaussian-splatting", "ai"]
 
 ### NeRF（Neural Radiance Fields）原理
 
-- 核心思想：使用多层感知机（MLP）编码场景的3D辐射场，输入为3D位置(x,y,z)和观察方向(θ,φ)，输出为颜色(RGB)和体积密度(σ)
+- 核心思想：使用多层感知机（MLP）编码场景的3D辐射场，输入为3D位置 $(x, y, z)$ 和观察方向 $(\theta, \varphi)$ ，输出为颜色(RGB)和体积密度 $(\sigma)$
 - 位置编码（Positional Encoding）：将输入坐标通过高频正弦函数映射到高维空间，使MLP能够表达高频细节
-- 体渲染（Volume Rendering）：沿相机光线采样多个点，通过体渲染积分公式合成像素颜色：C = Σ T_i * α_i * c_i，其中T为透射率，α为不透明度
+- 体渲染（Volume Rendering）：沿相机光线采样多个点，通过体渲染积分公式合成像素颜色： $C = \sum_i T_i \cdot \alpha_i \cdot c_i$ ，其中T为透射率， $\alpha$ 为不透明度
 - 训练过程：使用多视角图像作为监督信号，通过Photometric Loss（光度损失）优化MLP参数
 - NeRF的隐式表示优势：无需网格化、无需纹理映射、天然支持连续的3D场景表示
 
 ### 3D Gaussian Splatting（3DGS）原理
 
-- 核心思想：使用大量3D高斯椭球（Gaussian）显式表示场景，每个高斯有位置(μ)、协方差矩阵(Σ)、不透明度(α)和球谐函数颜色(SH)
+- 核心思想：使用大量3D高斯椭球（Gaussian）显式表示场景，每个高斯有位置 $(\boldsymbol{\mu})$ 、协方差矩阵 $(\boldsymbol{\Sigma})$ 、不透明度 $(\alpha)$ 和球谐函数颜色(SH)
 - 渲染过程（Splatting）：将3D高斯投影到2D屏幕空间，按深度排序后从前到后进行Alpha Blending，合成最终图像
 - 可微分光栅化：3DGS的渲染过程是完全可微的，支持端到端的梯度优化
 - 训练过程：从SfM（Structure from Motion）的稀疏点云初始化，通过交替优化高斯参数和自适应密度控制（增加/删除/分裂高斯）来拟合场景
@@ -84,7 +84,7 @@ tags: ["neural-rendering", "nerf", "3dgs", "gaussian-splatting", "ai"]
 ### 3DGS的内存开销与可扩展性问题
 
 - 3DGS的高斯数量随场景规模线性增长：一个中等复杂度的室外场景可能需要100万-1000万个高斯
-- 每个高斯的内存开销：位置(3*4B) + 协方差(6*4B) + 不透明度(1*4B) + SH系数(48*4B for 3 bands) ≈ 260 Bytes
+- 每个高斯的内存开销：位置 $(3 \times 4\text{B})$ + 协方差 $(6 \times 4\text{B})$ + 不透明度 $(1 \times 4\text{B})$ + SH系数 $(48 \times 4\text{B}$ for 3 bands $) \approx 260$ Bytes
 - 1000万高斯约需2.6GB显存，这对游戏应用来说过于庞大（游戏的总显存预算通常为2-4GB用于几何）
 - 压缩方案：Vector Quantization（向量量化）、Pruning（剪枝不重要的）、Merge（合并相似高斯），但压缩后质量可能下降
 

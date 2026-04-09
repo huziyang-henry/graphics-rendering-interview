@@ -28,8 +28,7 @@ tags: ["material-system", "pbr", "shader", "texture-binding"]
 
 - 材质定义是一个数据结构，包含：Shader类型/ID、纹理绑定槽列表（每个槽指定语义名称和默认值）、标量/向量参数（如Tint Color、Emissive Intensity、Tiling/Offset）。
 - 纹理槽的语义化命名：AlbedoMap、NormalMap、MetallicMap、RoughnessMap、AOMap、EmissiveMap、OpacityMap等。通过语义名称而非索引访问纹理槽，提高可读性和灵活性。
-- 材质支持\
-- 概念——如果某个纹理槽未绑定，Shader使用默认值（如白色Albedo、(0,0,1)法线、0 Metallic、1 Roughness等）。
+- 材质支持默认值（Fallback）概念——如果某个纹理槽未绑定，Shader使用默认值（如白色Albedo、(0,0,1)法线、0 Metallic、1 Roughness等）。
 
 ### 纹理资源层（Texture Resource）
 

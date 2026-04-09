@@ -32,18 +32,15 @@ tags: ["taa", "temporal-aa", "motion-vector", "ghosting", "jitter"]
 
 ### 运动向量（Motion Vector）的作用
 
-- 运动向量记录了当前帧每个像素相对于上一帧的位移，用于将上一帧的像素\
-- 到当前帧的正确位置
+- 运动向量记录了当前帧每个像素相对于上一帧的位移，用于将上一帧的像素重投影到当前帧的正确位置
 - 计算方式：在顶点着色器中计算当前帧和上一帧的裁剪空间位置，其差值即为运动向量；或在后处理Pass中根据深度缓冲重建世界空间位置，再投影到上一帧计算运动向量
 - 重投影过程：historyUV = currentUV - motionVector，从历史帧的Color Buffer中采样historyUV处的颜色
 - 运动向量的精度直接影响TAA的质量——不精确的运动向量会导致历史帧像素错位，产生明显的鬼影
 
 ### 反鬼影技术（Anti-Ghosting）
 
-- Ghosting是TAA最严重的视觉问题：当场景中物体移动或相机运动时，历史帧中该物体旧位置的颜色会残留在当前帧中，形成\
-- 
-- Neighborhood Clamping：将历史帧颜色限制在当前帧像素邻域的最小值和最大值之间。如果历史颜色超出邻域范围，则认为它是\
-- ，将其clamp到邻域范围内
+- Ghosting是TAA最严重的视觉问题：当场景中物体移动或相机运动时，历史帧中该物体旧位置的颜色会残留在当前帧中，形成鬼影（Ghosting）
+- Neighborhood Clamping：将历史帧颜色限制在当前帧像素邻域的最小值和最大值之间。如果历史颜色超出邻域范围，则认为它是无效的历史帧颜色，将其clamp到邻域范围内
 - Variance Clipping：计算当前帧邻域的均值和方差，将历史帧颜色限制在均值±k*标准差的范围内。相比Neighborhood Clamping，Variance Clipping对高对比度边缘的处理更好
 - 更高级的方案包括YCoCg颜色空间的Clamping（在亮度-色度空间中分离处理，减少色彩偏移）和基于运动向量置信度的自适应混合
 
@@ -75,8 +72,7 @@ tags: ["taa", "temporal-aa", "motion-vector", "ghosting", "jitter"]
 ### Ghosting（鬼影）问题
 
 - Ghosting是TAA最常见也最棘手的问题。表现形式包括：快速移动的物体后面拖着残影、相机快速转动时整个画面出现模糊的残影
-- Ghosting的根本原因是历史帧中包含了已经\
-- 的信息——物体移动后，旧位置的颜色仍然被混合到当前帧
+- Ghosting的根本原因是历史帧中包含了已经失效的信息——物体移动后，旧位置的颜色仍然被混合到当前帧
 - 缓解Ghosting的关键：高质量的运动向量、有效的反鬼影算法（Variance Clipping > Neighborhood Clamping）、自适应混合因子
 - 极端情况下（如瞬移、场景切换），需要强制清除历史帧缓冲来避免严重的Ghosting
 

@@ -25,20 +25,20 @@ tags: ["bloom", "gaussian-blur", "hdr", "post-process"]
 
 ### 亮度阈值提取（Luminance Threshold）
 
-- 从HDR渲染结果中，将亮度超过设定阈值（Threshold）的像素提取出来，其余像素置为零。提取公式通常为：max(luminance - threshold, 0.0)
-- 亮度计算采用Rec.709标准权重：L = dot(color, vec3(0.2126, 0.7152, 0.0722))，也可以使用简单的max分量作为近似
+- 从HDR渲染结果中，将亮度超过设定阈值（Threshold）的像素提取出来，其余像素置为零。提取公式通常为： $\max(\text{luminance} - \text{threshold},\ 0.0)$
+- 亮度计算采用Rec.709标准权重： $L = \mathbf{c} \cdot (0.2126,\ 0.7152,\ 0.0722)$ ，也可以使用简单的max分量作为近似
 - 阈值的选择直接影响Bloom的范围——阈值过低会导致整体画面发灰发雾，阈值过高则Bloom效果不明显
 
 ### 降采样与多次高斯模糊
 
 - 对提取的亮部图像进行逐级降采样（通常降采样到1/2、1/4、1/8、1/16分辨率），形成Mipmap链
 - 在每个降采样层级上执行高斯模糊。高斯模糊的核心是利用高斯函数作为权重对邻域像素进行加权平均
-- 关键优化：将二维高斯分解为水平（Horizontal）和垂直（Vertical）两个一维Pass，计算复杂度从O(n^2)降低到O(2n)
+- 关键优化：将二维高斯分解为水平（Horizontal）和垂直（Vertical）两个一维Pass，计算复杂度从 $O(n^2)$ 降低到 $O(2n)$
 - 进一步优化：利用GPU纹理的线性采样特性，在采样时偏移0.5个像素，一次采样覆盖两个像素的贡献，将采样数再减半。即9-tap高斯模糊可以用5次采样实现
 
 ### Additive Blend叠加回原图
 
-- 将模糊后的各层级Bloom纹理以Additive方式叠加回原始HDR图像：finalColor = originalColor + bloomIntensity * bloomColor
+- 将模糊后的各层级Bloom纹理以Additive方式叠加回原始HDR图像： $\text{finalColor} = \text{originalColor} + \text{bloomIntensity} \cdot \text{bloomColor}$
 - 多个层级的Bloom可以分别赋予不同权重，低分辨率层级（大范围模糊）提供柔和的辉光，高分辨率层级（小范围模糊）提供锐利的亮边
 - 最终叠加后的结果仍然保持HDR范围，交给后续的Tone Mapping处理
 
@@ -80,7 +80,7 @@ tags: ["bloom", "gaussian-blur", "hdr", "post-process"]
 
 ### Bloom颜色偏移问题
 
-- 在LDR管线中做Bloom时，由于颜色值已经被clamp到[0,1]，高亮区域的颜色信息可能已经丢失，导致Bloom颜色不正确
+- 在LDR管线中做Bloom时，由于颜色值已经被clamp到 $[0, 1]$ ，高亮区域的颜色信息可能已经丢失，导致Bloom颜色不正确
 - 解决方案：确保Bloom提取在Tone Mapping之前进行，使用HDR颜色缓冲
 - 如果必须在LDR管线中实现Bloom，可以在提取亮部时对颜色进行预乘（Premultiply）处理，保留相对颜色比例
 

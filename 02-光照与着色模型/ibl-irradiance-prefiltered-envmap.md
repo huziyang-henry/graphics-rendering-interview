@@ -30,14 +30,17 @@ tags: ["ibl", "irradiance-map", "prefiltered-envmap", "split-sum"]
 
 - 传统光源（方向光、点光源、聚光灯）只能提供直接光照，而真实世界中物体还接收来自四面八方的间接光照。
 - IBL的核心思想是用一张HDR全景图（Equirectangular Map或Cubemap）来编码来自所有方向的光照信息。
-- 渲染方程中，间接光照的积分可以重写为对环境贴图的卷积：Lo_indirect = ∫[f(l,v) * env(l) * (n·l)] dl。
-- 这个积分对于每个像素、每个方向都需要计算，直接求解的计算量是O(N²)（N为环境贴图分辨率），无法实时完成。
+- 渲染方程中，间接光照的积分可以重写为对环境贴图的卷积：$L_{o,\text{indirect}} = \int f(\mathbf{l}, \mathbf{v}) \cdot \text{env}(\mathbf{l}) \cdot (\mathbf{n} \cdot \mathbf{l}) \, d\mathbf{l}$。
+- 这个积分对于每个像素、每个方向都需要计算，直接求解的计算量是 $O(N^2)$（$N$ 为环境贴图分辨率），无法实时完成。
 - 因此，IBL通过预计算（离线卷积）将积分结果存储在查找表/贴图中，运行时仅需采样即可。
 
 ### 辐照度图（Irradiance Map）
 
-- 辐照度图用于计算间接Diffuse光照。Diffuse BRDF（Lambert）与方向无关（f_lambert = albedo/π），因此卷积简化为对环境贴图的球面平均。
-- 卷积公式：irradiance(n) = (1/π) * ∫_Ω env(l) * max(n·l, 0) dl。
+- 辐照度图用于计算间接Diffuse光照。Diffuse BRDF（Lambert）与方向无关（$f_{\text{Lambert}} = \text{albedo} / \pi$），因此卷积简化为对环境贴图的球面平均。
+- 卷积公式：
+
+$$ \text{irradiance}(\mathbf{n}) = \frac{1}{\pi} \int_{\Omega} \text{env}(\mathbf{l}) \cdot \max(\mathbf{n} \cdot \mathbf{l}, 0) \, d\mathbf{l} $$
+
 - 物理含义：辐照度图存储了每个法线方向上接收到的总环境光能量，不考虑方向性反射。
 - 辐照度图是低频信息（因为球面平均本身就是低通滤波），可以用很小的分辨率（如32x32或64x64 per face的Cubemap）存储。
 - 卷积方法：对Cubemap的每个texel，沿法线方向在半球内均匀采样（通常64-128个采样点），计算加权平均。
@@ -47,17 +50,22 @@ tags: ["ibl", "irradiance-map", "prefiltered-envmap", "split-sum"]
 - 预滤波环境贴图用于计算间接Specular光照。与Diffuse不同，Specular BRDF（Cook-Torrance）的方向依赖性强，不能简单球面平均。
 - 精确卷积需要考虑NDF、Fresnel和Geometry三个项，计算量极大。
 - Split Sum近似（Brian Karis, Epic Games 2013）将积分拆分为两部分：
--   Part 1: ∫[env(l) * D(h) * G(l,v,h) * (n·l) / (4*(n·v)*(n·h))] dl → 预滤波环境贴图
--   Part 2: ∫[F(v,h) * G(l,v,h) * (n·l) / (n·h)] dl → BRDF LUT
-- 预滤波环境贴图将不同roughness级别的卷积结果存储在Cubemap的不同mipmap层级中：level 0 = roughness 0（镜面反射），最高level = roughness 1（最大模糊）。
-- 采样时通过roughness计算LOD级别：float lod = roughness * (maxMipLevel - 1); 然后使用textureLod采样。
+-   Part 1:
+
+$$ \int \text{env}(\mathbf{l}) \cdot D(\mathbf{h}) \cdot G(\mathbf{l}, \mathbf{v}, \mathbf{h}) \cdot \frac{\mathbf{n} \cdot \mathbf{l}}{4 \cdot (\mathbf{n} \cdot \mathbf{v}) \cdot (\mathbf{n} \cdot \mathbf{h})} \, d\mathbf{l} \rightarrow \text{预滤波环境贴图} $$
+
+-   Part 2:
+
+$$ \int F(\mathbf{v}, \mathbf{h}) \cdot G(\mathbf{l}, \mathbf{v}, \mathbf{h}) \cdot \frac{\mathbf{n} \cdot \mathbf{l}}{\mathbf{n} \cdot \mathbf{h}} \, d\mathbf{l} \rightarrow \text{BRDF LUT} $$
+- 预滤波环境贴图将不同roughness级别的卷积结果存储在Cubemap的不同mipmap层级中：level 0 = $\text{roughness} = 0$（镜面反射），最高level = $\text{roughness} = 1$（最大模糊）。
+- 采样时通过roughness计算LOD级别：`float lod = roughness * (maxMipLevel - 1);` 然后使用textureLod采样。
 
 ### BRDF LUT（2D查找表）
 
 - BRDF LUT预计算了Split Sum的Part 2，存储为一张256x256的RG贴图。
-- 输入参数：横轴为NdotV（0-1），纵轴为roughness（0-1）。
+- 输入参数：横轴为 $\text{NdotV}$（0-1），纵轴为 $\text{roughness}$（0-1）。
 - 输出：R通道为scale（缩放因子），G通道为bias（偏置因子）。
-- 最终Specular IBL = PrefilteredColor * (F0 * scale + bias)。
+- 最终Specular IBL = $\text{PrefilteredColor} \cdot (F_0 \cdot \text{scale} + \text{bias})$。
 - BRDF LUT与场景无关，只需要生成一次即可在所有场景中复用。
 
 
@@ -69,7 +77,7 @@ tags: ["ibl", "irradiance-map", "prefiltered-envmap", "split-sum"]
 - 步骤2：生成辐照度图：对Cubemap进行Diffuse卷积（球面采样，64-128 samples），输出低分辨率Cubemap。
 - 步骤3：生成预滤波环境贴图：对Cubemap按roughness级别进行Specular卷积（重要性采样GGX NDF，2048+ samples），输出带mipmap的Cubemap。
 - 步骤4：生成BRDF LUT：在Shader中通过蒙特卡洛积分预计算，输出256x256的RG纹理。
-- 步骤5：运行时着色：Diffuse = irradiance * albedo；Specular = prefilteredColor * (F0 * brdfLut.r + brdfLut.g) * F90 + F0 * prefilteredColor。
+- 步骤5：运行时着色：Diffuse = $\text{irradiance} \cdot \text{albedo}$；Specular = $\text{prefilteredColor} \cdot (F_0 \cdot \text{brdfLut.r} + \text{brdfLut.g}) \cdot F_{90} + F_0 \cdot \text{prefilteredColor}$。
 - 工具链：HDR环境贴图可从Poly Haven、HDRI Haven等免费资源获取；卷积可使用cmftStudio、IBLBaker等离线工具，或在引擎中实时生成。
 
 ### HDR格式处理
@@ -86,7 +94,7 @@ tags: ["ibl", "irradiance-map", "prefiltered-envmap", "split-sum"]
 ### 预滤波贴图的mipmap级别与roughness的映射
 
 - roughness到mipmap level的映射关系需要仔细设置。假设预滤波贴图有N级mipmap（level 0到N-1）：
--   标准映射：lod = roughness * (N - 1)。例如5级mipmap，roughness=0.5 → lod=2.0。
+-   标准映射：$\text{lod} = \text{roughness} \cdot (N - 1)$。例如5级mipmap，$\text{roughness}=0.5 \rightarrow \text{lod}=2.0$。
 -   如果mipmap级别不够（如只有4级），roughness较大时会出现精度不足，高光模糊不充分。
 -   如果mipmap级别过多（如10+），低roughness时相邻level之间的差异太小，可能产生mipmap banding。
 - 经验值：5级mipmap（对应roughness 0, 0.25, 0.5, 0.75, 1.0）对于大多数场景足够。UE4默认使用5级。
@@ -96,7 +104,7 @@ tags: ["ibl", "irradiance-map", "prefiltered-envmap", "split-sum"]
 
 - 在GLSL中采样预滤波贴图时，必须使用textureLod（或textureCubeLod）显式指定LOD级别，不能使用自动mipmap选择。
 - 自动mipmap选择基于屏幕空间导数，会导致相邻像素使用不同的LOD级别，产生锯齿和闪烁。
-- 正确做法：float lod = roughness * float(maxMipLevel); vec3 prefilteredColor = textureLod(prefilteredMap, R, lod).rgb;
+- 正确做法：`float lod = roughness * float(maxMipLevel); vec3 prefilteredColor = textureLod(prefilteredMap, R, lod).rgb;`
 - 在某些移动端GPU上，textureLod可能不支持非整数LOD，需要使用textureGrad或手动在两个整数LOD之间插值。
 
 ### 环境贴图的接缝问题
