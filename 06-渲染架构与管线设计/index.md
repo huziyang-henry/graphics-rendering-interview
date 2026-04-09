@@ -14,6 +14,7 @@
 | 06.04 | Forward变体（Forward+/Clustered） | 2 |
 | 06.05 | GPU Driven Rendering | 1 |
 | 06.06 | 大世界与多线程渲染架构 | 2 |
+| 06.09 | Render Graph 架构设计 | 1 |
 ---
 
 ## 题目列表
@@ -40,4 +41,5 @@
 |------|------|--------|------|
 | Q06.07 | 请设计一个支持大世界、动态天气、日夜循环的渲染架构。如何组织渲染Pass、管理资源生命周期？ | 大世界与多线程渲染架构 | [查看](./open-world-day-night-cycle-rendering.md) |
 | Q06.08 | 在多线程渲染架构中，Render Thread和Worker Thread的职责如何划分？如何避免GPU Bubble？ | 大世界与多线程渲染架构 | [查看](./multithread-rendering-render-thread-worker-thread.md) |
+| Q06.09 | 什么是 Render Graph？它解决了传统渲染管线的哪些痛点？ | Render Graph 架构设计 | [查看](./render-graph-design-principles.md) |
 

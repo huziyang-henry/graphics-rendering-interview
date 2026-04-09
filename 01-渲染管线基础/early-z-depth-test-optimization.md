@@ -60,6 +60,24 @@ tags: ["early-z", "depth-test", "hi-z", "z-cull"]
 - 移动端GPU的Early-Z行为差异：部分移动GPU（如早期Mali）的Early-Z实现不如桌面GPU完善，需要通过GPU Profiler验证。
 - gl_FragDepth的layout限定符：在GLSL中，使用layout(depth_unchanged)可以告诉编译器深度值不会改变，从而保持Early-Z生效。
 
+### Early-Z、Hi-Z 与 Z-Prepass 的对比与配合
+
+这三种技术都是为了提前剔除不可见片段，减少片段着色器执行次数，但实现层级和适用场景不同：
+
+| 技术 | 实现层级 | 核心原理 | 适用场景 | 性能开销 |
+|------|---------|---------|---------|---------|
+| Early-Z | 硬件固定功能 | 光栅化阶段先执行深度测试，再执行片段着色器 | 所有不透明物体 | 几乎为 0 |
+| Hi-Z | 硬件固定功能 | 生成深度缓冲的 Mipmap，快速剔除整个图元或像素块 | 大尺寸遮挡物后的物体 | 极低 |
+| Z-Prepass | 软件渲染 Pass | 先渲染一遍深度（不输出颜色），再渲染颜色 Pass | 复杂片段着色器、高 Overdraw 场景 | 额外一次顶点处理 |
+
+**工程配合策略**：
+1. 所有不透明物体默认开启 Early-Z（硬件免费）
+2. 开启 Hi-Z 配合硬件遮挡剔除，快速剔除被大物体遮挡的整个物体
+3. 当 Overdraw 很高（复杂 PBR 材质、大量半透明物体）时使用 Z-Prepass——只写入深度不执行片段着色器，颜色 Pass 时 Early-Z 剔除被遮挡片段
+4. Alpha Test 和 Alpha Blend 物体不能使用 Early-Z（需执行片段着色器才能决定是否丢弃）
+
+**踩坑经验**：Z-Prepass 增加 Draw Call 数量，需配合合批使用；移动端 TBR 架构下 Z-Prepass 收益比 PC 更大，因为减少片段着色器执行能大幅降低带宽。
+
 ## 🔮 延伸思考
 
 - Depth Pre-pass在什么情况下反而降低性能？当场景的Overdraw很低、VS计算量很大（如骨骼动画角色）、或者GPU是Compute Bound而非Bandwidth Bound时，Pre-pass的额外开销可能超过其收益。

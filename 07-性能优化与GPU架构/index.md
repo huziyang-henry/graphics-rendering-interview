@@ -16,6 +16,7 @@
 | 07.06 | Overdraw分析与优化 | 1 |
 | 07.07 | GPU同步机制（Barrier/Sync） | 1 |
 | 07.08 | GPU性能分析工具与流程 | 1 |
+| 07.12 | Shader 变体管理与优化 | 1 |
 ---
 
 ## 题目列表
@@ -50,4 +51,5 @@
 | Q07.09 | 什么是GPU Barrier/Sync？在多Pass渲染中，什么时候需要显式插入Barrier？错误的同步会导致什么问题？ | GPU同步机制（Barrier/Sync） | [查看](./gpu-barrier-sync-multipass-rendering.md) |
 | Q07.10 | 请描述一次完整的GPU性能分析流程。你会使用哪些工具？重点关注哪些指标？ | GPU性能分析工具与流程 | [查看](./gpu-profiling-workflow-renderdoc-nsight-pix.md) |
 | Q07.11 | 在移动端（Mali/Adreno/Apple GPU）上，渲染性能优化的策略与PC端有哪些关键差异？请讨论TBDR架构下的带宽优化策略。 | GPU内存层次与带宽优化, GPU性能瓶颈分析与定位 | [查看](./mobile-gpu-rendering-optimization-tbdr.md) |
+| Q07.12 | 什么是 Shader 变体爆炸？如何系统地解决？ | Shader 变体管理与优化 | [查看](./shader-variant-explosion-optimization.md) |
 
