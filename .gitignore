@@ -15,19 +15,28 @@ Desktop.ini
 *.sublime-workspace
 
 # LLM / AI tool files
+# --- 工具私有数据（屏蔽） ---
 .claude/
 .aider*
 .continue/
-.cursor/
 .codeium/
 .copilot/
 trae/
 .trae/
 .windsurfrules
-CLAUDE.md
 GEMINI.md
 .cursorrules
 .aider.conf.yml
+
+# --- Cursor 个人配置（屏蔽，但保留团队共享规则） ---
+.cursor/settings.json
+.cursor/sessions/
+.cursor/cache/
+
+# --- 团队共享规范（纳入版本控制，不要屏蔽） ---
+# CLAUDE.md
+# .cursor/rules/
+# .github/copilot-instructions.md
 
 # Temp / cache
 *.tmp
