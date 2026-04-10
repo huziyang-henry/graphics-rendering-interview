@@ -1,8 +1,10 @@
 # 渲染面试知识体系 — 项目规范
 
 > 本文件是本仓库的 LLM 编码规范。Claude Code、Trae 等工具会自动加载此文件。
-> Cursor 用户请参阅 `.cursor/rules/latex-math-rules.md`。
-> GitHub Copilot 用户请参阅 `.github/copilot-instructions.md`。
+> **修改规范时，必须同步更新以下三个文件（内容完全一致）**：
+> - `CLAUDE.md`（Claude Code / Trae）
+> - `.cursor/rules/project-rules.md`（Cursor）
+> - `.github/copilot-instructions.md`（Copilot / Codex）
 
 ---
 
@@ -240,9 +242,9 @@ GitHub 通过 MathJax 渲染，使用 `$...$` 行内和 `$$...$$` 块级。
 
 | 经验类型 | 更新文件 |
 |---------|---------|
-| 通用项目规范（流程、结构、质量） | `CLAUDE.md` |
-| LaTeX 公式相关 | `.cursor/rules/latex-math-rules.md` |
-| 精简规则（给 Copilot/Codex） | `.github/copilot-instructions.md` |
+| 通用项目规范（流程、结构、质量） | 三个文件同步更新（见文件头说明） |
+| LaTeX 公式相关 | 三个文件同步更新 |
+| 任何规范变更 | 三个文件同步更新 |
 
 ### 8.4 沉淀原则
 

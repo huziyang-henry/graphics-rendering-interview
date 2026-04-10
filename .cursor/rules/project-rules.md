@@ -1,6 +1,6 @@
-# 渲染面试知识体系 — 项目规范（Copilot/Codex 版）
+# 渲染面试知识体系 — 项目规范（Cursor 版）
 
-> 本文件与根目录 `CLAUDE.md`、`.cursor/rules/project-rules.md` 内容完全一致。
+> 本文件与根目录 `CLAUDE.md`、`.github/copilot-instructions.md` 内容完全一致。
 > 修改规范时，**必须同步更新所有三个文件**。
 
 ---
@@ -15,8 +15,8 @@
 ├── XX-章节名/index.md      # 章节索引（知识点表 + 按难度分组的题目索引）
 ├── XX-章节名/*.md          # 单题回答（YAML frontmatter + 五步结构正文）
 ├── CLAUDE.md               # Claude Code / Trae 规范
-├── .cursor/rules/          # Cursor 规范
-└── .github/copilot-instructions.md  # Copilot / Codex 规范（本文件）
+├── .cursor/rules/          # Cursor 规范（本目录）
+└── .github/copilot-instructions.md  # Copilot / Codex 规范
 ```
 
 ---
