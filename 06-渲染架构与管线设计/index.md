@@ -15,6 +15,7 @@
 | 06.05 | GPU Driven Rendering | 1 |
 | 06.06 | 大世界与多线程渲染架构 | 2 |
 | 06.09 | Render Graph 架构设计 | 1 |
+| 06.10 | 透明物体渲染技术全景 | 1 |
 ---
 
 ## 题目列表
@@ -26,6 +27,7 @@
 | Q06.01 | 前向渲染（Forward Rendering）和延迟渲染（Deferred Rendering）的核心区别是什么？各自的优势和劣势是什么？ | Forward与Deferred渲染对比 | [查看](./forward-vs-deferred-rendering.md) |
 | Q06.02 | 延迟渲染中G-Buffer通常包含哪些内容？G-Buffer的带宽开销如何估算？ | G-Buffer设计与优化 | [查看](./gbuffer-design-bandwidth-estimation.md) |
 | Q06.03 | 延迟渲染为什么不能很好地处理半透明物体？常见的解决方案有哪些？ | 半透明物体渲染方案 | [查看](./deferred-transparency-oit-depth-peeling.md) |
+| Q06.10 | 透明物体是怎么渲染的？ | 透明物体渲染技术全景 | [查看](./transparent-object-rendering-techniques.md) |
 
 ### 高级
 
