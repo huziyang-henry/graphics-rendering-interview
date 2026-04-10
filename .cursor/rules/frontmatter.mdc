@@ -1,0 +1,40 @@
+---
+description: "YAML Frontmatter 字段规范、知识点关系"
+alwaysApply: true
+---
+
+# YAML Frontmatter 规范
+
+每道面试题必须包含完整的 YAML frontmatter：
+
+```yaml
+---
+id: Q03.01
+title: "题目名称（中文）"
+chapter: 3
+chapter_name: "阴影技术"
+difficulty: beginner
+knowledge_points:
+  - id: "03.01"
+    name: "知识点名称"
+tags: [shadow, shadow-map]
+---
+```
+
+## 字段说明
+
+| 字段 | 必填 | 说明 |
+|------|------|------|
+| `id` | 是 | 唯一标识，`Q{章节}.{序号}` |
+| `title` | 是 | 中文题目，用双引号包裹 |
+| `chapter` | 是 | 章节编号（数字） |
+| `chapter_name` | 是 | 章节名称（中文） |
+| `difficulty` | 是 | 枚举值：`beginner` / `intermediate` / `advanced` / `expert` |
+| `knowledge_points` | 是 | 关联知识点列表（多对多关系） |
+| `tags` | 是 | 英文标签数组，用于搜索和分类 |
+
+## 知识点与题目的关系
+
+- 多对多关系：一个知识点可对应多道题，一道题可关联多个知识点
+- 知识点不绑定难度等级（同一知识点可以有初级和高级题目）
+- 知识点 ID 格式：`{章节号}.{序号}`，如 `03.01`

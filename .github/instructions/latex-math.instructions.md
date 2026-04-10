@@ -1,0 +1,40 @@
+---
+applyTo: "**"
+---
+
+# 数学公式规范（LaTeX）
+
+GitHub 通过 MathJax 渲染，使用 `$...$` 行内和 `$$...$$` 块级。
+
+## 符号约定
+
+| 类型 | LaTeX | 示例 |
+|------|-------|------|
+| 向量 | `\mathbf{}` | `\mathbf{n}`, `\mathbf{l}`, `\mathbf{v}`, `\mathbf{h}` |
+| 点积 | `\cdot` | `\mathbf{n} \cdot \mathbf{l}` |
+| 分数 | `\frac{}{}` | `\frac{\text{albedo}}{\pi}` |
+| 积分 | `\int_{\Omega}` | 渲染方程 |
+| 函数名 | `\text{}` | `\text{roughness}`, `\text{normalize}` |
+| 希腊字母 | LaTeX 命令 | `\alpha`, `\theta`, `\pi`, `\lambda` |
+
+## 行内 vs 块级
+
+- **行内 `$...$`**：简单代数、向量运算、复杂度、参数引用
+- **块级 `$$...$$`**：含分数、积分、矩阵的完整公式；前后各留一个空行
+
+## ⚠️ GitHub 兼容性注意事项
+
+**禁止使用**（GitHub MathJax 不支持）：
+- `\begin{aligned}` → 用 `\\` 换行
+- `\begin{pmatrix}` → 用 `\begin{bmatrix}`
+- `\begin{equation}` → 用 `$$...$$`
+- `\tag{}` → 用文字标注
+- `\label{}` / `\ref{}` → 用文字引用
+
+**单字母变量陷阱**：
+- `$n$`、`$f$`、`$k$` 等仅含单个普通字母的行内公式在 GitHub 上**不会被渲染**
+- 解决方案：使用 Markdown 斜体 `*n*` 代替 `$n$`，或将其放入更完整的公式中
+
+**格式要求**：
+- 行内公式 `$` 前后各留一个半角空格（中文与 `$` 之间也留空格）
+- 块级公式前后各留一个空行
