@@ -1,7 +1,8 @@
 # 渲染面试知识体系 — 项目规范（Cursor 版）
 
-> 本文件与根目录 `CLAUDE.md`、`.github/copilot-instructions.md` 内容完全一致。
-> 修改规范时，**必须同步更新所有三个文件**。
+> 本文件是 `.claude/docs/` 子文件的**合并完整版**，供 Cursor 使用。
+> **主源**在 `.claude/docs/`，修改规范时先改主源，再合并到此文件。
+> 另需同步更新：`.github/copilot-instructions.md`（Copilot/Codex 版）
 
 ---
 
@@ -9,24 +10,14 @@
 
 面向游戏引擎工程师的图形渲染面试知识库，Markdown + YAML frontmatter 结构，托管在 GitHub。
 
-```
-渲染面试知识体系/
-├── 00-总纲.md              # 全局导航（纯链接，不维护数字）
-├── XX-章节名/index.md      # 章节索引（知识点表 + 按难度分组的题目索引）
-├── XX-章节名/*.md          # 单题回答（YAML frontmatter + 五步结构正文）
-├── CLAUDE.md               # Claude Code / Trae 规范
-├── .cursor/rules/          # Cursor 规范（本目录）
-└── .github/copilot-instructions.md  # Copilot / Codex 规范
-```
-
 ---
 
 ## 零、面试题生成工作流
 
-当用户提出一个渲染面试问题时，按以下 6 步自动执行：
+当用户提出一个渲染面试问题时，按以下 7 步自动执行：
 
 ```
-用户提问 → ①分类与编号 → ②生成回答MD → ③更新index.md → ④验证 → ⑤提交Git → ⑥经验沉淀
+用户提问 → ①分类与编号 → ②创建分支 → ③生成回答MD → ④更新index.md → ⑤验证 → ⑥提交+PR → ⑦经验沉淀
 ```
 
 ### ① 分类与编号
@@ -51,28 +42,40 @@
 | 光追、GI、Lumen、Nanite、NeRF、3DGS | 08-高级渲染技术与前沿方向 |
 | 开放世界、LOD、大世界、系统设计 | 09-综合场景与系统设计 |
 
-### ② 生成回答 MD
+### ② 创建分支
+
+```bash
+git checkout -b feat/Q{chapter}.{序号}-{filename}
+```
+
+分支命名规范见第七节。
+
+### ③ 生成回答 MD
 
 在目标章节目录下创建文件，写入 YAML frontmatter + 五步结构正文（结论→原理→工程→踩坑→延伸），遵循 LaTeX 规范。
 
-### ③ 更新 index.md
+### ④ 更新 index.md
 
 在对应难度分组的表格末尾追加一行，如有新知识点则同步更新知识点表。**不修改** `00-总纲.md`。
 
-### ④ 验证
+### ⑤ 验证
 
 - YAML frontmatter 格式正确
 - `$` 配对完整，无不兼容 LaTeX 环境
 - 无截断行和 Unicode 转义残留
 - index.md 表格格式正确
 
-### ⑤ 提交 Git
+### ⑥ 提交 + PR
 
 ```bash
-git add -A && git commit -m "feat: add Q{chapter}.{序号} {filename}" && git push
+git add -A
+git commit -m "feat: add Q{chapter}.{序号} {filename}"
+git push origin feat/Q{chapter}.{序号}-{filename}
 ```
 
-### ⑥ 经验沉淀
+然后通过 GitHub API 创建 PR 并自动合并（详见第七节）。
+
+### ⑦ 经验沉淀
 
 按第八节规范检查是否有通用经验需要更新到规范文件。
 
@@ -203,12 +206,57 @@ GitHub 通过 MathJax 渲染，使用 `$...$` 行内和 `$$...$$` 块级。
 
 ---
 
-## 七、Git 提交规范
+## 七、Git 提交规范 + 分支/PR 工作流
+
+### Commit 规范
 
 - 按功能分批提交，便于审查和回溯
 - Commit message 使用英文，格式：`{type}: {简短描述}`
 - Type：`feat`（新增）、`fix`（修复）、`refactor`（重构）、`docs`（文档）
 - 示例：`feat: add Q01.10 normal matrix inverse transpose`
+
+### 分支/PR 工作流
+
+> **核心原则**：所有变更通过分支隔离，经 PR 合并到 main，禁止直接 push main。
+
+**分支命名规范**：
+
+```
+{type}/{short-description}
+
+示例：
+feat/Q06.10-transparent-rendering
+fix/single-letter-variable-rendering
+docs/claude-md-split
+refactor/sync-rules
+```
+
+Type 取值：`feat`、`fix`、`docs`、`refactor`
+
+**PR 创建流程**：
+
+1. 从 main 创建分支：`git checkout -b {type}/{description}`
+2. 完成修改后提交：`git add -A && git commit -m "{type}: {description}"`
+3. 推送分支：`git push origin {type}/{description}`
+4. 通过 GitHub API 创建 PR
+5. 自动合并（Squash and merge）
+
+**PR 规范**：
+
+- **标题格式**：`{type}: {简短描述}`，与 commit message 一致
+- **描述模板**：自动生成，包含变更摘要
+- **合并策略**：Squash and merge（保持 main 历史整洁）
+- **自动合并**：创建 PR 后立即通过 API 合并（单人项目无需人工 Review）
+
+**面试题生成场景的完整 Git 操作**：
+
+```bash
+git checkout -b feat/Q{chapter}.{序号}-{filename}
+git add -A
+git commit -m "feat: add Q{chapter}.{序号} {filename}"
+git push origin feat/Q{chapter}.{序号}-{filename}
+# 然后通过 GitHub API 创建 PR 并自动合并
+```
 
 ---
 
@@ -235,13 +283,15 @@ GitHub 通过 MathJax 渲染，使用 `$...$` 行内和 `$$...$$` 块级。
 
 ### 8.3 沉淀到哪里
 
-**修改规范时，必须同步更新以下三个文件**：
+本项目使用「主源 + 合并版」策略管理规范文件：
 
-| 文件 | 适用工具 |
-|------|---------|
-| `CLAUDE.md` | Claude Code、Trae |
-| `.cursor/rules/project-rules.md` | Cursor |
-| `.github/copilot-instructions.md` | Copilot、Codex |
+| 文件 | 适用工具 | 角色 |
+|------|---------|------|
+| `.claude/docs/*.md` | Claude Code、Trae | **主源**（Claude Code 自动加载） |
+| `.cursor/rules/project-rules.md` | Cursor | 合并完整版（本文件） |
+| `.github/copilot-instructions.md` | Copilot、Codex | 合并完整版 |
+
+**同步策略**：先修改 `.claude/docs/` 子文件（主源），再合并到本文件和 Copilot 版本。
 
 ### 8.4 沉淀原则
 
@@ -265,4 +315,4 @@ GitHub 通过 MathJax 渲染，使用 `$...$` 行内和 `$$...$$` 块级。
 - [ ] 文件命名使用英文连字符
 - [ ] 对应章节的 index.md 已更新
 - [ ] 无截断行（`\` 结尾）和 Unicode 转义残留
-- [ ] 如有通用经验，已同步更新所有三个规范文件
+- [ ] 如有通用经验，已更新对应规范文件（先改 `.claude/docs/` 子文件，再合并到 Cursor/Copilot 版本）

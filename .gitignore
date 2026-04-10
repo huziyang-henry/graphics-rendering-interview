@@ -16,7 +16,15 @@ Desktop.ini
 
 # LLM / AI tool files
 # --- 工具私有数据（屏蔽） ---
-.claude/
+# --- Claude Code 工具私有数据（屏蔽） ---
+.claude/settings*
+.claude/*.json
+
+# --- 团队共享规范（纳入版本控制，不要屏蔽） ---
+# .claude/docs/       ← Claude Code 规范子文件（主源）
+# CLAUDE.md           ← Claude Code / Trae 索引文件
+# .cursor/rules/      ← Cursor 规则
+# .github/copilot-instructions.md  ← Copilot / Codex 规范
 .aider*
 .continue/
 .codeium/
